@@ -66,8 +66,30 @@ export interface LayerView {
   readonly grade: Grade;
 }
 
+/** Punto de la escena donde el sitio puede poner una etiqueta de la lente (máquina, torreta). */
+export interface Anchor {
+  /** Estable dentro del loop, p. ej. `a/m1/pnp-2` (línea / módulo / máquina). */
+  readonly id: string;
+  readonly kind: "maquina";
+  readonly position: Vector3;
+}
+
+/** Evento del guion que el sitio debe reflejar en sus etiquetas, en segundos del loop. */
+export interface ScriptEvent {
+  readonly anchor: string;
+  readonly state: "alerta" | "paro";
+  readonly from: number;
+  readonly to: number;
+}
+
 export interface FilmWorld {
   readonly layers: Readonly<Record<Layer, LayerView>>;
+  /**
+   * Anclas para las etiquetas de la lente. Al cerrar el loop, la cámara avanzó un módulo: el
+   * ancla del módulo k en el último cuadro continúa como la del módulo k − 1 en el cuadro 0.
+   */
+  readonly anchors?: readonly Anchor[];
+  readonly events?: readonly ScriptEvent[];
   /**
    * Deja el mundo en su estado del instante `t`. Debe ser función pura del tiempo (sin estado
    * acumulado) para que cualquier cuadro se pueda renderizar en cualquier orden.

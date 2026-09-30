@@ -1,7 +1,17 @@
 /// <reference types="vite/client" />
 
 import type { Clip } from "./clips";
-import type { Layer } from "./worlds/types";
+import type { Anchor, Layer, ScriptEvent } from "./worlds/types";
+
+/** Ancla proyectada en un cuadro: x e y en 0–1 desde arriba a la izquierda, distancia en metros. */
+export interface ProjectedAnchor {
+  readonly id: string;
+  readonly kind: Anchor["kind"];
+  readonly x: number;
+  readonly y: number;
+  readonly distance: number;
+  readonly visible: boolean;
+}
 
 declare global {
   interface Window {
@@ -11,6 +21,9 @@ declare global {
       readonly frames: number;
       /** Renderiza el cuadro `index` de una capa y lo devuelve como PNG (data URL). */
       frame(index: number, layer: Layer): Promise<string>;
+      /** Anclas del mundo proyectadas con la cámara del cuadro `index` (sin render). */
+      anchors(index: number): ProjectedAnchor[];
+      readonly events: readonly ScriptEvent[];
     };
     filmError?: string;
   }

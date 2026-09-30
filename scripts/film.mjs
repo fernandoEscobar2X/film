@@ -7,6 +7,7 @@
  *   sheet   <toma> [--layer=...]   Hoja de contacto (un cuadro por segundo).
  *   preview <toma>                 El corte de la I a 6° barre el cuadro y revela la capa de datos.
  *   encode  <toma>                 Capas apiladas en AV1 (WebM) y H.264 (MP4) + póster AVIF/WebP.
+ *   anchors <toma>                 Posición en pantalla de cada máquina por cuadro (JSON).
  *
  * Los cuadros quedan en `media-src/film/<toma>/<capa>/NNNN.png` (fuera de git). Cada cuadro es
  * independiente: un render se puede cortar y reanudar en cualquier punto. Con `--samples` o
@@ -283,6 +284,17 @@ async function openStudio(clip, quality = {}) {
         }
       }
     },
+    /**
+     * Anclas proyectadas con la cámara del cuadro, y eventos del guion (no renderiza).
+     * @param {number} index
+     */
+    async anchors(index) {
+      return page.evaluate((i) => {
+        const film = window.film;
+        if (!film) throw new Error("El estudio no está listo");
+        return { anchors: film.anchors(i), events: film.events };
+      }, index);
+    },
     async close() {
       await browser.close();
       await server.close();
@@ -520,15 +532,67 @@ async function encode(clip) {
   for (const file of [av1, h264, avif, webp]) console.log(`${shown(file)}  ${megabytes(file)}`);
 }
 
+/**
+ * Dónde está cada máquina en cada cuadro, para las etiquetas de la lente: el sitio pone el
+ * nombre, el estado y las lecturas del simulador, en el idioma del visitante.
+ * @param {Clip} clip
+ */
+async function anchors(clip) {
+  const studio = await openStudio(clip, { samples: 1, scale: 0.25 });
+  try {
+    const total = totalFrames(clip);
+    /** @type {Awaited<ReturnType<typeof studio.anchors>>[]} */
+    const frames = [];
+    for (let i = 0; i < total; i++) frames.push(await studio.anchors(i));
+    const events = frames[0]?.events ?? [];
+    const seen = new Set(
+      frames.flatMap(({ anchors: list }) => list.filter((a) => a.visible).map((a) => a.id)),
+    );
+    const round = (/** @type {number} */ value, /** @type {number} */ digits) =>
+      Number(value.toFixed(digits));
+    const tracks = Object.fromEntries(
+      [...seen].sort().map((id) => [
+        id,
+        frames.map(({ anchors: list }) => {
+          const anchor = list.find((a) => a.id === id);
+          return anchor?.visible ? [round(anchor.x, 4), round(anchor.y, 4), round(anchor.distance, 1)] : null;
+        }),
+      ]),
+    );
+    mkdirSync(HERO_DIR, { recursive: true });
+    const out = join(HERO_DIR, `${clip.id}.anclas.json`);
+    const data = {
+      toma: clip.id,
+      fps: clip.fps,
+      cuadros: total,
+      formato:
+        "anclas[id][cuadro] = [x, y, distancia en m] con x e y en 0–1 desde arriba a la izquierda; null si no se ve",
+      alCerrarElLoop:
+        "el ancla del módulo k en el último cuadro continúa como la del módulo k − 1 en el cuadro 0",
+      eventos: events.map((event) => ({
+        ancla: event.anchor,
+        estado: event.state,
+        desde: event.from,
+        hasta: event.to,
+      })),
+      anclas: tracks,
+    };
+    writeAtomic(out, `${JSON.stringify(data)}\n`);
+    console.log(`${seen.size} anclas × ${total} cuadros → ${shown(out)} (${megabytes(out)})`);
+  } finally {
+    await studio.close();
+  }
+}
+
 // ─── Entrada ─────────────────────────────────────────────────────────────────
 
-const commands = { render, loop, sheet, preview, encode };
+const commands = { render, loop, sheet, preview, encode, anchors };
 
 async function main() {
   const { command, clipId, options } = parseArgs(process.argv.slice(2));
   if (!command || !clipId || !(command in commands)) {
     console.log(
-      "Uso: npm run film -- <render|loop|sheet|preview|encode> <industria>-<noche|dia>-<h|v> [opciones]",
+      "Uso: npm run film -- <render|loop|sheet|preview|encode|anchors> <industria>-<noche|dia>-<h|v> [opciones]",
     );
     process.exitCode = command ? 1 : 0;
     return;

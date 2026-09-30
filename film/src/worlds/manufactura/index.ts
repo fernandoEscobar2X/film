@@ -20,7 +20,7 @@ import { PlanarReflection, withPlanarReflection } from "../../core/planar-reflec
 import { TAU } from "../../core/rng";
 import type { Subsample } from "../../core/sampling";
 import { compose, instance } from "../kit";
-import type { CameraPose, FilmWorld, Grade, Layer, WorldOptions } from "../types";
+import type { Anchor, CameraPose, FilmWorld, Grade, Layer, WorldOptions } from "../types";
 import { createDataLayer } from "./data-layer";
 import { createDynamics, type LinePlacement } from "./dynamics";
 import { buildHallModule } from "./hall";
@@ -39,10 +39,16 @@ import {
   MODULES,
   PERIOD,
   ROOF_Y,
+  TOWER_SEGMENT,
   WALL_Z,
 } from "./layout";
 import { buildLineModule } from "./line";
 import { createMaterials } from "./materials";
+import { ALERT } from "./script";
+
+/** Nombres estables para las anclas: línea (a principal, b al otro lado del pasillo, c atrás). */
+const LINE_IDS = ["a", "b", "c"] as const;
+const MACHINE_IDS = ["pnp-1", "pnp-2", "aoi", "horno"] as const;
 
 /**
  * Manufactura: línea SMT de una maquiladora de electrónica en Tijuana, turno de noche.
@@ -239,8 +245,22 @@ export function createManufactura(gl: WebGLRenderer, options: WorldOptions): Fil
     else data.beforeRender(renderer, camera, sample);
   }
 
+  // Anclas sobre la torreta de cada máquina: ahí el sitio pone nombre, estado y lecturas.
+  const anchors: Anchor[] = placements.flatMap((placement) =>
+    line.towers.map(([x, y, z], tower) => ({
+      id: `${LINE_IDS[placement.line]}/m${placement.module}/${MACHINE_IDS[tower]}`,
+      kind: "maquina" as const,
+      position: new Vector3(x, y + TOWER_SEGMENT.base + 4 * TOWER_SEGMENT.height + 0.06, z).applyMatrix4(
+        placement.matrix,
+      ),
+    })),
+  );
+  const alertId = `${LINE_IDS[ALERT.line]}/m1/${MACHINE_IDS[ALERT.tower]}`;
+
   return {
     layers: { fisica: { scene, grade }, datos: data },
+    anchors,
+    events: [{ anchor: alertId, state: "alerta", from: ALERT.from, to: ALERT.to }],
     update(t, sample) {
       update(t, sample);
       data.update(t);
