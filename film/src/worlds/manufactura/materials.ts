@@ -58,7 +58,8 @@ export function createMaterials() {
 
   const paint = new MeshStandardMaterial({
     name: "pintura",
-    color: new Color("#dadee3"),
+    // Gris claro, no blanco: bajo las luminarias no se quema.
+    color: new Color("#c9cfd6"),
     roughness: 0.55,
     roughnessMap: scaled(roughNoise, 2),
   });
@@ -135,7 +136,8 @@ export function createMaterials() {
   });
   const floor = new MeshStandardMaterial({
     name: "epóxico",
-    color: new Color("#3f464f"),
+    // Epóxico gris carbón: de noche el piso es sobre todo reflejo, y el pasillo queda calmo.
+    color: new Color("#2b3037"),
     roughness: 1,
     roughnessMap: floorRough,
     map: floorTone,

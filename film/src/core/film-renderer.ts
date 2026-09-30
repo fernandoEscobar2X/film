@@ -8,6 +8,7 @@ import {
   type RawShaderMaterial,
   type Texture,
   Vector3,
+  Vector4,
   WebGLRenderer,
   WebGLRenderTarget,
 } from "three";
@@ -77,6 +78,8 @@ export class FilmRenderer {
     this.gl.toneMapping = NoToneMapping;
     this.gl.shadowMap.enabled = true;
     this.gl.shadowMap.type = PCFShadowMap;
+    // Las sombras dependen del subcuadro (luz de área), no de la pasada: una vez por subcuadro.
+    this.gl.shadowMap.autoUpdate = false;
     this.gl.autoClear = false;
 
     this.scene = new WebGLRenderTarget(width, height, {
@@ -102,6 +105,7 @@ export class FilmRenderer {
       const instant = t + ((sample.time - 0.5) * options.shutter) / options.fps;
       world.update(instant, sample);
       this.placeCamera(world, instant, sample.pixel, sample.lens);
+      this.gl.shadowMap.needsUpdate = true;
       world.beforeRender?.(this.gl, this.camera, sample, layer);
 
       this.gl.setRenderTarget(this.scene);
@@ -132,6 +136,11 @@ export class FilmRenderer {
       gamma: grade.gamma,
       saturation: grade.saturation,
       vignette: grade.vignette,
+      titleWindow: new Vector4(
+        ...(grade.titleWindow?.center ?? [0, 0]),
+        ...(grade.titleWindow?.radius ?? [1, 1]),
+      ),
+      titleExposure: grade.titleWindow?.exposure ?? 0,
       grain: grade.grain,
       seed: options.frame,
     });

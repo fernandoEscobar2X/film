@@ -1,7 +1,7 @@
 import {
   BoxGeometry,
   type BufferGeometry,
-  type Color,
+  type Camera,
   CylinderGeometry,
   DirectionalLight,
   DoubleSide,
@@ -15,18 +15,22 @@ import {
   Matrix4,
   Mesh,
   MeshBasicMaterial,
-  MeshLambertMaterial,
+  MeshStandardMaterial,
   PlaneGeometry,
   Quaternion,
   RingGeometry,
   Scene,
   TorusGeometry,
   Vector3,
+  type WebGLRenderer,
 } from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { edgeMaterial, glowing, volumeMaterial } from "../../core/data-style";
 import { brand } from "../../core/palette";
+import { PlanarReflection, withPlanarReflection } from "../../core/planar-reflection";
 import { smoothstep, wrap } from "../../core/rng";
-import { compose, instance, Kit, noShadow } from "../kit";
+import type { Subsample } from "../../core/sampling";
+import { compose, instance, Kit } from "../kit";
 import type { Grade, LayerView } from "../types";
 import type { LinePlacement } from "./dynamics";
 import { BELT_Y, LANES, PERIOD, TOWER_SEGMENT, WALL_Z } from "./layout";
@@ -54,10 +58,6 @@ const scratch = {
   scale: new Vector3(),
 };
 
-function glowing(color: Color, intensity: number): MeshBasicMaterial {
-  return noShadow(new MeshBasicMaterial({ color: color.clone().multiplyScalar(intensity) }));
-}
-
 function edgesOf(boxes: ReadonlyArray<{ size: readonly number[]; base: readonly number[] }>): BufferGeometry {
   const parts = boxes.map(({ size, base }) => {
     const box = new BoxGeometry(size[0], size[1], size[2]);
@@ -76,6 +76,15 @@ export interface DataLayerInput {
   readonly placements: readonly LinePlacement[];
   readonly floor: { readonly start: number; readonly length: number };
   readonly duration: number;
+  /** Resolución de salida, para el reflejo del piso. */
+  readonly width: number;
+  readonly height: number;
+}
+
+export interface DataLayer extends LayerView {
+  update(t: number): void;
+  /** Reflejo del piso, con la cámara ya colocada. */
+  beforeRender(gl: WebGLRenderer, camera: Camera, sample: Subsample): void;
 }
 
 export function createDataLayer({
@@ -83,7 +92,9 @@ export function createDataLayer({
   placements,
   floor,
   duration,
-}: DataLayerInput): LayerView & { update(t: number): void } {
+  width,
+  height,
+}: DataLayerInput): DataLayer {
   const scene = new Scene();
   const night = brand("noche");
   scene.background = night;
@@ -94,8 +105,14 @@ export function createDataLayer({
   scene.add(key);
 
   const senal = brand("senal");
-  const fill = new MeshLambertMaterial({ color: brand("marino").lerp(night, 0.25) });
-  const edge = new LineBasicMaterial({ color: brand("hielo"), transparent: true, opacity: 0.38 });
+  // Volúmenes translúcidos: dejan ver la banda y las tarjetas que corren por dentro de la línea.
+  const fill = volumeMaterial({
+    lit: brand("pacifico-600"),
+    mid: brand("marino"),
+    shade: night.clone().lerp(brand("marino"), 0.45),
+    opacity: 0.5,
+  });
+  const edge = edgeMaterial(brand("hielo"), night, 0.55);
   const stroke = glowing(senal, 1.6);
   const trayStroke = glowing(senal, 1.1);
   const packet = glowing(brand("hielo"), 3.2);
@@ -137,21 +154,26 @@ export function createDataLayer({
     ),
   );
 
-  // Piso: el plano de referencia y los carriles apenas insinuados.
-  const ground = new Mesh(
-    new PlaneGeometry(floor.length, 2 * WALL_Z),
-    new MeshLambertMaterial({ color: night.clone().lerp(brand("marino"), 0.35) }),
-  );
+  // Piso: plano oscuro y pulido que refleja los flujos, con los carriles apenas insinuados.
+  const groundMaterial = new MeshStandardMaterial({
+    name: "piso-datos",
+    color: night.clone().lerp(brand("marino"), 0.35),
+    roughness: 0.32,
+  });
+  const reflection = new PlanarReflection(Math.ceil(width / 2), Math.ceil(height / 2));
+  withPlanarReflection(groundMaterial, reflection, 0.55);
+  const ground = new Mesh(new PlaneGeometry(floor.length, 2 * WALL_Z), groundMaterial);
   ground.rotation.x = -Math.PI / 2;
   ground.position.set(floor.start + floor.length / 2, 0, 0);
   scene.add(ground);
   const laneMaterial = new MeshBasicMaterial({ color: brand("acero") });
-  for (const z of LANES) {
+  const lanes = LANES.map((z) => {
     const lane = new Mesh(new PlaneGeometry(floor.length, 0.03), laneMaterial);
     lane.rotation.x = -Math.PI / 2;
     lane.position.set(floor.start + floor.length / 2, 0.002, z);
     scene.add(lane);
-  }
+    return lane;
+  });
 
   // Elementos vivos.
   const boardsPerModule = Math.round(PERIOD / 1.2);
@@ -166,7 +188,7 @@ export function createDataLayer({
   const onTray = make(new BoxGeometry(0.2, 0.034, 0.034), packet, placements.length * trayPackets);
   const rising = make(new BoxGeometry(0.034, 0.16, 0.034), packet, placements.length * line.drops.length);
   const towers = make(
-    new CylinderGeometry(TOWER_SEGMENT.radius * 1.4, TOWER_SEGMENT.radius * 1.4, 0.07, 20),
+    new CylinderGeometry(TOWER_SEGMENT.radius * 2, TOWER_SEGMENT.radius * 2, 0.09, 24),
     new MeshBasicMaterial({ color: 0xffffff }),
     placements.length * line.towers.length,
   );
@@ -258,7 +280,7 @@ export function createDataLayer({
     const level = alert?.level ?? 0;
     alertFrame.visible = alertFill.visible = level > 0;
     alertEdge.opacity = level;
-    (alertFill.material as MeshBasicMaterial).opacity = 0.22 * level;
+    (alertFill.material as MeshBasicMaterial).opacity = 0.3 * level;
     const envelopeBase = new Vector3(...alertBase);
     if (alert) {
       alertFrame.matrix.copy(alert.matrix);
@@ -269,11 +291,12 @@ export function createDataLayer({
     }
     pulses.forEach((ring, index) => {
       const phase = wrap(t / 1.6 + index / pulses.length, 1);
-      const radius = 1.1 + phase * 2.6;
+      // Pulsos contenidos alrededor de la máquina: no invaden el pasillo donde va el titular.
+      const radius = 0.9 + phase * 1.6;
       ring.visible = level > 0;
       ring.position.set(envelopeBase.x, 0.01, envelopeBase.z);
       ring.scale.setScalar(radius);
-      (ring.material as MeshBasicMaterial).opacity = level * (1 - phase) ** 2;
+      (ring.material as MeshBasicMaterial).opacity = 0.85 * level * (1 - phase) ** 2;
     });
     // Tren de lecturas en ámbar: de la máquina a la charola y hacia el sistema.
     const [dropX, dropTop] = line.drops[ALERT.tower] ?? [0, 0];
@@ -312,5 +335,9 @@ export function createDataLayer({
     grain: 0.01,
   };
 
-  return { scene, grade, update };
+  function beforeRender(gl: WebGLRenderer, camera: Camera, sample: Subsample): void {
+    reflection.render(gl, scene, camera, [ground, ...lanes], sample.glossy);
+  }
+
+  return { scene, grade, update, beforeRender };
 }

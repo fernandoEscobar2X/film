@@ -2,6 +2,7 @@ import {
   type Camera,
   HalfFloatType,
   LinearFilter,
+  LinearMipmapLinearFilter,
   Matrix4,
   type MeshStandardMaterial,
   type Object3D,
@@ -15,9 +16,11 @@ import {
 
 /**
  * Reflejo planar del piso (plano y = 0), como el de un epóxico pulido. Se renderiza la escena
- * desde la cámara espejo en cada subcuadro; el piso lo muestrea con un desplazamiento distinto
- * por subcuadro, escalado por su rugosidad, y la acumulación lo convierte en un reflejo difuso
- * físicamente plausible (sin blur de pantalla).
+ * desde la cámara espejo en cada subcuadro. El piso lee ese reflejo con el lóbulo de un piso
+ * pulido visto en ángulo rasante: una franja vertical, angosta y larga según la rugosidad, con
+ * varias lecturas sobre los mipmaps a lo largo de la franja. Cada subcuadro corre las lecturas
+ * una fracción del paso, y la acumulación lo convierte en un reflejo difuso continuo, sin copias
+ * fantasma de las luminarias ni tramas.
  */
 export class PlanarReflection {
   readonly target: WebGLRenderTarget;
@@ -32,8 +35,9 @@ export class PlanarReflection {
   constructor(width: number, height: number) {
     this.target = new WebGLRenderTarget(width, height, {
       type: HalfFloatType,
-      minFilter: LinearFilter,
+      minFilter: LinearMipmapLinearFilter,
       magFilter: LinearFilter,
+      generateMipmaps: true,
       depthBuffer: true,
     });
   }
@@ -91,6 +95,7 @@ export function withPlanarReflection(
       reflectionMatrix: { value: reflection.textureMatrix },
       reflectionJitter: { value: reflection.jitter },
       reflectionStrength: { value: strength },
+      reflectionWidth: { value: reflection.target.width },
     });
     shader.vertexShader = shader.vertexShader
       .replace(
@@ -113,6 +118,7 @@ vReflectionCoord = reflectionMatrix * ( modelMatrix * reflectionWorld );`,
 uniform sampler2D reflectionMap;
 uniform vec2 reflectionJitter;
 uniform float reflectionStrength;
+uniform float reflectionWidth;
 varying vec4 vReflectionCoord;`,
       )
       .replace(
@@ -120,14 +126,24 @@ varying vec4 vReflectionCoord;`,
         `#include <lights_fragment_end>
 {
   float rough = material.roughness;
-  // Cada píxel rota la muestra del subcuadro (Cranley-Patterson): ruido que la acumulación
-  // promedia, en vez de copias fantasma. El estiramiento vertical imita el brillo alargado de
-  // un piso pulido visto en ángulo rasante.
-  float turn = 6.2831853 * fract( 52.9829189 * fract( dot( gl_FragCoord.xy, vec2( 0.06711056, 0.00583715 ) ) ) );
-  vec2 spin = vec2( cos( turn ), sin( turn ) );
-  vec2 offset = vec2( reflectionJitter.x * spin.x - reflectionJitter.y * spin.y, reflectionJitter.x * spin.y + reflectionJitter.y * spin.x );
-  vec2 reflectionUv = vReflectionCoord.xy / vReflectionCoord.w + offset * vec2( 0.3, 1.0 ) * rough * 0.2;
-  vec3 mirrored = texture2D( reflectionMap, reflectionUv ).rgb;
+  vec2 reflectionUv = vReflectionCoord.xy / vReflectionCoord.w;
+  // Lóbulo en ángulo rasante: cada luminaria deja una franja vertical que se funde con la
+  // siguiente. Largo y ancho crecen con la rugosidad; el mip sigue al ancho, y las lecturas van
+  // tan juntas como ese desenfoque, así la franja es continua dentro de cada subcuadro.
+  float streak = rough * 0.5;
+  float width = rough * 0.045;
+  float lod = log2( max( width * reflectionWidth, 1.0 ) );
+  vec3 mirrored = vec3( 0.0 );
+  float total = 0.0;
+  for ( int k = 0; k < 16; k ++ ) {
+    // Cada subcuadro corre las lecturas una fracción distinta del paso (estratificada).
+    float along = ( float( k ) + reflectionJitter.y ) / 16.0 - 0.5;
+    float weight = 1.0 - 4.0 * along * along;
+    vec2 uv = reflectionUv + vec2( ( reflectionJitter.x - 0.5 ) * width, along * streak );
+    mirrored += textureLod( reflectionMap, uv, lod ).rgb * weight;
+    total += weight;
+  }
+  mirrored /= max( total, 1e-4 );
   float facing = saturate( dot( geometryNormal, geometryViewDir ) );
   float fresnel = 0.04 + 0.96 * pow( 1.0 - facing, 5.0 );
   reflectedLight.indirectSpecular += mirrored * fresnel * reflectionStrength * ( 1.0 - rough );

@@ -159,13 +159,15 @@ export function createManufactura(gl: WebGLRenderer, options: WorldOptions): Fil
     color: new Color("#fff4e8").multiplyScalar(40),
     reach: 4,
   };
-  const reflection = new PlanarReflection(width, height);
+  // A media resolución: el reflejo se desenfoca por la rugosidad del epóxico (decenas de píxeles),
+  // así que se ve igual y cuesta la cuarta parte.
+  const reflection = new PlanarReflection(Math.ceil(width / 2), Math.ceil(height / 2));
   const patched = new Set<MeshStandardMaterial>();
   scene.traverse((object) => {
     if (!(object instanceof Mesh)) return;
     const material = object.material;
     if (material instanceof MeshStandardMaterial && !patched.has(material)) {
-      withFixtureLights(material, grid);
+      withFixtureLights(material, material === m.floor ? { ...grid, specular: 0 } : grid);
       patched.add(material);
     }
   });
@@ -187,6 +189,11 @@ export function createManufactura(gl: WebGLRenderer, options: WorldOptions): Fil
     saturation: 0.92,
     vignette: 0.4,
     grain: 0.016,
+    // El titular va abajo a la izquierda en horizontal y en el 40 % inferior en vertical.
+    titleWindow:
+      framing === "h"
+        ? { center: [0.13, 0.14], radius: [0.55, 0.48], exposure: -0.9 }
+        : { center: [0.5, 0.04], radius: [1.1, 0.46], exposure: -0.9 },
   };
 
   const drift = (t: number) => Math.sin((TAU * t) / duration);
@@ -220,7 +227,7 @@ export function createManufactura(gl: WebGLRenderer, options: WorldOptions): Fil
     overhead.target.updateMatrixWorld();
   }
 
-  const data = createDataLayer({ line, placements, floor: { start, length }, duration });
+  const data = createDataLayer({ line, placements, floor: { start, length }, duration, width, height });
 
   function beforeRender(
     renderer: WebGLRenderer,
@@ -229,6 +236,7 @@ export function createManufactura(gl: WebGLRenderer, options: WorldOptions): Fil
     layer: Layer,
   ): void {
     if (layer === "fisica") reflection.render(renderer, scene, camera, [floor, ...stripes], sample.glossy);
+    else data.beforeRender(renderer, camera, sample);
   }
 
   return {

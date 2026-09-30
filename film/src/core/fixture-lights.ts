@@ -24,6 +24,11 @@ export interface FixtureGrid {
   readonly color: Color;
   /** Luminarias a cada lado que suma cada fragmento. */
   readonly reach: number;
+  /**
+   * Brillo especular de las luminarias (1 = físico). En un piso con reflejo planar va en 0: el
+   * reflejo ya muestra las luminarias, y los brillos puntuales se verían como manchas en fila.
+   */
+  readonly specular?: number;
 }
 
 const MAX_ROWS = 6;
@@ -41,6 +46,7 @@ export function withFixtureLights(material: MeshStandardMaterial, grid: FixtureG
       fixtureOffset: { value: grid.offset },
       fixtureHeight: { value: grid.height },
       fixtureColor: { value: grid.color },
+      fixtureSpecular: { value: grid.specular ?? 1 },
     });
     shader.vertexShader = shader.vertexShader
       .replace("#include <common>", "#include <common>\nvarying vec3 vFixtureWorld;")
@@ -65,7 +71,8 @@ uniform float fixtureGains[ FIXTURE_ROWS ];
 uniform float fixturePitch;
 uniform float fixtureOffset;
 uniform float fixtureHeight;
-uniform vec3 fixtureColor;`,
+uniform vec3 fixtureColor;
+uniform float fixtureSpecular;`,
       )
       .replace(
         "#include <lights_fragment_end>",
@@ -77,6 +84,7 @@ uniform vec3 fixtureColor;`,
       ceilingShadow.shadowIntensity, ceilingShadow.shadowBias, ceilingShadow.shadowRadius,
       vDirectionalShadowCoord[ 0 ] ) : 1.0;
   #endif
+  vec3 specularBefore = reflectedLight.directSpecular;
   float nearest = floor( ( vFixtureWorld.x - fixtureOffset ) / fixturePitch + 0.5 );
   float span = ( float( FIXTURE_REACH ) + 0.5 ) * fixturePitch;
   for ( int r = 0; r < FIXTURE_ROWS; r ++ ) {
@@ -97,6 +105,7 @@ uniform vec3 fixtureColor;`,
       RE_Direct( fixture, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );
     }
   }
+  reflectedLight.directSpecular = mix( specularBefore, reflectedLight.directSpecular, fixtureSpecular );
 }
 #include <lights_fragment_end>`,
       );

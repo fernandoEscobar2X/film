@@ -1,4 +1,4 @@
-import { AdditiveBlending, GLSL3, NoBlending, RawShaderMaterial, Vector2, Vector3 } from "three";
+import { AdditiveBlending, GLSL3, NoBlending, RawShaderMaterial, Vector2, Vector3, Vector4 } from "three";
 
 /** Pasadas de pantalla completa. GLSL 3 crudo: sin inyecciones de three, resultado predecible. */
 
@@ -126,6 +126,8 @@ uniform vec3 lift;
 uniform float gamma;
 uniform float saturation;
 uniform float vignette;
+uniform vec4 titleWindow;
+uniform float titleExposure;
 uniform float grain;
 uniform uint seed;
 uniform vec2 resolution;
@@ -196,6 +198,12 @@ void main() {
   float v = smoothstep(0.3, 1.1, length(q));
   color = mix(color, lift * 0.6, v * vignette);
 
+  // Ventana de gradación del titular: baja la exposición en un óvalo suave donde el sitio pone el
+  // texto, para que se lea sin recuadros ni degradados encima del video.
+  vec2 w = (vUv - titleWindow.xy) / titleWindow.zw;
+  float inside = 1.0 - smoothstep(0.0, 1.0, dot(w, w));
+  color *= exp2(titleExposure * inside);
+
   uvec2 pixel = uvec2(gl_FragCoord.xy);
   float n = noise(pixel, 1u) + noise(pixel, 2u) - 1.0;
   color += n * grain * (1.0 - 0.6 * luma);
@@ -217,6 +225,8 @@ void main() {
       gamma: { value: 1 },
       saturation: { value: 1 },
       vignette: { value: 0 },
+      titleWindow: { value: new Vector4(0, 0, 1, 1) },
+      titleExposure: { value: 0 },
       grain: { value: 0 },
       seed: { value: 0 },
       resolution: { value: new Vector2(1, 1) },

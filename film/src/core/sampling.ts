@@ -43,7 +43,7 @@ export interface Subsample {
   readonly time: number;
   /** Dos variables libres para que cada mundo reparta sus luces de área. */
   readonly light: readonly [number, number];
-  /** Punto en el disco unitario para reflejos difusos (rugosidad). */
+  /** Dos variables uniformes en [0, 1) para recorrer el lóbulo de los reflejos difusos. */
   readonly glossy: readonly [number, number];
 }
 
@@ -58,6 +58,6 @@ export function subsample(i: number, count: number): Subsample {
     lens: concentricDisk(halton(k, 5), halton(k, 7)),
     time: (stratum + 0.5) / count,
     light: [halton(k, 11), halton(k, 13)],
-    glossy: concentricDisk(halton(k, 17), halton(k, 19)),
+    glossy: [halton(k, 17), halton(k, 19)],
   };
 }

@@ -32,6 +32,15 @@ export interface Grade {
   readonly gamma: number;
   readonly saturation: number;
   readonly vignette: number;
+  /**
+   * Zona del titular del hero (coordenadas 0–1 desde abajo a la izquierda): óvalo con centro y
+   * radios donde la exposición baja `exposure` pasos, con caída suave hacia afuera.
+   */
+  readonly titleWindow?: {
+    readonly center: readonly [number, number];
+    readonly radius: readonly [number, number];
+    readonly exposure: number;
+  };
   readonly grain: number;
 }
 
