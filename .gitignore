@@ -1,0 +1,9 @@
+node_modules/
+# Investigación: vive junto al repo, no se versiona nunca (ver INFORME).
+investigacion/
+# Originales y renders intermedios (cuadros PNG): pesados y regenerables.
+media-src/
+# Temporales del pipeline.
+.film-tmp/
+*.log
+.DS_Store

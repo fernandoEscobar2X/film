@@ -1,0 +1,26 @@
+{
+  "name": "sip-film",
+  "private": true,
+  "type": "module",
+  "description": "Estudio de video del hero de SIP: mundos 3D procedurales renderizados offline en dos capas (física y datos).",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "film": "node scripts/film.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "biome check .",
+    "format": "biome check --write ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15",
+    "@types/node": "^24.0.0",
+    "@types/three": "0.186.0",
+    "playwright-core": "1.63.0",
+    "three": "0.186.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.1",
+    "vitest": "5.0.3"
+  }
+}

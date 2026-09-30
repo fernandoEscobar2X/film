@@ -1,0 +1,29 @@
+/*
+ * Tokens de SIP: la única fuente de la paleta. La leen el sitio y el estudio de video
+ * (`film/src/core/palette.ts`); si un color cambia aquí, el siguiente render ya lo usa.
+ *
+ * Marca: valores de `marca-sip/paleta/colores.json`.
+ * Contraste: `senal` solo como texto sobre fondos oscuros (sobre claro, `pacifico-500` o
+ * `pacifico-600`); sobre `marino`, solo texto `blanco` o `hielo`.
+ */
+:root {
+  /* Marca */
+  --color-noche: #011631;
+  --color-marino: #1d2c41;
+  --color-pacifico-400: #1777bb;
+  --color-pacifico-500: #1469ac;
+  --color-pacifico-600: #145998;
+  --color-senal: #0189f5;
+  --color-senal-600: #0076d2;
+  --color-hielo: #f3f8fd;
+  --color-blanco: #ffffff;
+
+  /* Neutros fríos del sistema: texto secundario sobre oscuro y estructura. */
+  --color-bruma: #a9b9ca;
+  --color-acero: #4b5d73;
+
+  /* Estados: solo dentro de visualizaciones de datos, donde significan algo. */
+  --color-estado-operando: #2fb872;
+  --color-estado-alerta: #f2a516;
+  --color-estado-paro: #e5484d;
+}
