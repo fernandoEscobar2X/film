@@ -2,7 +2,6 @@ import {
   BoxGeometry,
   type BufferGeometry,
   type Camera,
-  CylinderGeometry,
   DirectionalLight,
   DoubleSide,
   EdgesGeometry,
@@ -20,6 +19,7 @@ import {
   Quaternion,
   RingGeometry,
   Scene,
+  SphereGeometry,
   TorusGeometry,
   Vector3,
   type WebGLRenderer,
@@ -187,8 +187,9 @@ export function createDataLayer({
   const boards = make(new BoxGeometry(0.2, 0.03, 0.14), packet, placements.length * boardsPerModule);
   const onTray = make(new BoxGeometry(0.2, 0.034, 0.034), packet, placements.length * trayPackets);
   const rising = make(new BoxGeometry(0.034, 0.16, 0.034), packet, placements.length * line.drops.length);
+  // Estado de cada máquina: una luz redonda donde está su torreta.
   const towers = make(
-    new CylinderGeometry(TOWER_SEGMENT.radius * 2, TOWER_SEGMENT.radius * 2, 0.09, 24),
+    new SphereGeometry(TOWER_SEGMENT.radius * 1.9, 24, 16),
     new MeshBasicMaterial({ color: 0xffffff }),
     placements.length * line.towers.length,
   );
