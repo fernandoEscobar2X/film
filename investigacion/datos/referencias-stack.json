@@ -1,0 +1,223 @@
+{
+ "cominvi": {
+  "name": "cominvi",
+  "url": "https://www.cominvi.com.mx/",
+  "libs": [
+   "webflow",
+   "canvas×2"
+  ],
+  "fonts": [
+   "webflow-icons",
+   "Helvetica Now Display",
+   "PP Supply Mono"
+  ],
+  "gen": "Webflow",
+  "scripts": [
+   "jquery-3.5.1.min.dc5e7f18c8.js?site=6899",
+   "webflow.schunk.380a9cc3d7b92fe0.js",
+   "webflow.45db7ba0.6a7654b6d67a8b28.js",
+   "main.js"
+  ],
+  "h": 900,
+  "title": "CoMinVi | Underground Mining Contractor in Mexico",
+  "mobileOverflow": false
+ },
+ "seasats": {
+  "name": "seasats",
+  "url": "https://www.seasats.com/",
+  "libs": [
+   "lenis",
+   "next.js",
+   "canvas×5"
+  ],
+  "fonts": [
+   "seasonMix",
+   "seasonSans",
+   "supplyMono"
+  ],
+  "gen": "",
+  "scripts": [
+   "4bd1b696-100b9d70ed4e49c1.js",
+   "1255-642c76f13c20a3ec.js",
+   "main-app-43b4b242c17d47ff.js",
+   "polyfills-42372ed130431b0a.js",
+   "webpack-1181484d38bebfd4.js",
+   "js?id=G-TP69LL8MSH"
+  ],
+  "h": 34212,
+  "title": "Seasats | Ocean Autonomy That Works",
+  "mobileOverflow": false
+ },
+ "usavionix": {
+  "name": "usavionix",
+  "url": "https://www.usavionix.com/",
+  "libs": [
+   "lenis",
+   "next.js",
+   "canvas×4"
+  ],
+  "fonts": [
+   "Geist",
+   "Geist Fallback",
+   "Geist Mono"
+  ],
+  "gen": "",
+  "scripts": [
+   "43d3624b-1ab690a9607356c2.js?dpl=dpl_Ftc",
+   "7817-6a2bec17dcf79268.js?dpl=dpl_FtcqDSk",
+   "main-app-68fb2d4ea796188f.js?dpl=dpl_Ftc",
+   "cd2bc502-55fce9a838dd65cb.js?dpl=dpl_Ftc",
+   "40f94348-e0c261c5cddf4f35.js?dpl=dpl_Ftc",
+   "91c6c604-be30d86f55b24a68.js?dpl=dpl_Ftc",
+   "6411-2587c64557ac03b9.js?dpl=dpl_FtcqDSk",
+   "7903-78fad2b834542816.js?dpl=dpl_FtcqDSk",
+   "1178-c6b6d01c97b6fd35.js?dpl=dpl_FtcqDSk",
+   "8612-a56e4e8c65dd1b8e.js?dpl=dpl_FtcqDSk",
+   "layout-80873ea2046e90ad.js?dpl=dpl_FtcqD",
+   "2d633d72-22ff268ae0e3f69a.js?dpl=dpl_Ftc"
+  ],
+  "h": 64664,
+  "title": "USAvionix | Advanced Jet Drone Systems for ISR & Defense",
+  "mobileOverflow": false
+ },
+ "cerebrium": {
+  "name": "cerebrium",
+  "url": "https://cerebrium.ai/",
+  "libs": [
+   "lenis",
+   "swup",
+   "astro",
+   "locomotive-scroll",
+   "canvas×1"
+  ],
+  "fonts": [
+   "Suisse Int'l Mono",
+   "Suisse Int'l",
+   "ABC Favorit Trial"
+  ],
+  "gen": "Astro v6.1.0",
+  "scripts": [
+   "GOYPYHD1P1OX.js.gz",
+   "js?id=G-9KSTJC8JM1&cx=c&gtm=4e69t0",
+   "gtm.js?id=GTM-59Z6C5L9",
+   "BackgroundCanvas.astro_astro_type_script",
+   "Layout.astro_astro_type_script_index_0_l",
+   "Header.astro_astro_type_script_index_0_l",
+   "SplitTitle.astro_astro_type_script_index",
+   "Rail.astro_astro_type_script_index_0_lan",
+   "InteractiveDots.astro_astro_type_script_",
+   "HeroHome.astro_astro_type_script_index_0",
+   "DatoImage.astro_astro_type_script_index_",
+   "SegmentedControls.astro_astro_type_scrip"
+  ],
+  "h": 10870,
+  "title": "Serverless GPU Infrastructure for Real-Time AI | Cerebrium",
+  "mobileOverflow": false
+ },
+ "unitedcarriers": {
+  "name": "unitedcarriers",
+  "url": "https://unitedcarriers.com/",
+  "libs": [
+   "lenis",
+   "webflow",
+   "canvas×6"
+  ],
+  "fonts": [
+   "BT Steinhart",
+   "Helvetica Neue",
+   "BT Steinhart Mono"
+  ],
+  "gen": "Webflow",
+  "scripts": [
+   "js?id=G-V8J933FGY0&gtg_health=1",
+   "mixpanel-2-latest.min.js",
+   "mhF8l1Ws1LN3_BS5Ibk2DnX-sDQ",
+   "script.js",
+   "attributes.js",
+   "",
+   "jquery-3.5.1.min.dc5e7f18c8.js?site=6a44",
+   "webflow.schunk.7a143ecb35f54dba.js",
+   "webflow.schunk.ebd01c7a24c3f681.js",
+   "webflow.9d979e0d.ce21502f658531f1.js",
+   "main.js"
+  ],
+  "h": 28228,
+  "title": "United Carriers | Global Freight Forwarding and Logistics",
+  "mobileOverflow": false
+ },
+ "terminal": {
+  "name": "terminal",
+  "url": "https://terminal-industries.com/",
+  "libs": [
+   "lenis",
+   "nuxt",
+   "canvas×1"
+  ],
+  "fonts": [
+   "SuisseIntl",
+   "Geist Mono"
+  ],
+  "gen": "",
+  "scripts": [
+   "insight.old.min.js",
+   "factors.js",
+   "insight.min.js",
+   "js?id=G-Y1JLHWSWZG&cx=c&gtm=4e69t1h2",
+   "dc87b898eec11.js",
+   "tracker.iife.js?nocache=%27q2pgfr",
+   "widget.js",
+   "CGyjR-Nh.js",
+   "1300104-7f00108e.js",
+   "gtm.js?id=GTM-KWFT3XRZ",
+   "v31edd6df95cf4e85bb4c19e7a9bdbcba1788362"
+  ],
+  "h": 15766,
+  "title": "Terminal Yard Operating System | The New Industry Standard in Yard Operations",
+  "mobileOverflow": false
+ },
+ "lisa": {
+  "name": "lisa",
+  "url": "https://lisa.locomotive.ca/en",
+  "libs": [
+   "canvas×1"
+  ],
+  "fonts": [
+   "HelveticaNowDisplay",
+   "LocomotiveNew"
+  ],
+  "gen": "",
+  "scripts": [
+   "recaptcha__es.js",
+   "api.js?render=explicit",
+   "js?id=G-WYYJ9ZP43V",
+   "vendors.js?v=1773158732955",
+   "app.js?v=1773158732955",
+   "v31edd6df95cf4e85bb4c19e7a9bdbcba1788362"
+  ],
+  "h": 900,
+  "title": "Locomotive",
+  "mobileOverflow": false
+ },
+ "illoca": {
+  "name": "illoca",
+  "url": "https://illoca.unseen.co/",
+  "libs": [
+   "nuxt",
+   "canvas×1"
+  ],
+  "fonts": [
+   "Geist Mono",
+   "F37 Analog",
+   "Graphik Web",
+   "Architect Pro Symbols",
+   "Architect Pro"
+  ],
+  "gen": "",
+  "scripts": [
+   "DGk6hhCZ.js"
+  ],
+  "h": 900,
+  "title": "illoca – Architectural design at the speed of thought",
+  "mobileOverflow": false
+ }
+}

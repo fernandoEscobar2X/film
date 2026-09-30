@@ -1,0 +1,21 @@
+# SIP Sistemas Inteligentes del Pacífico
+
+> Industrial software company based in Tijuana, Baja California, Mexico. SIP connects processes and data so operations can decide in real time: production dashboards, industrial IoT telemetry, systems integration, process automation, data analytics, web and mobile apps, and custom software for manufacturing, logistics, construction, agribusiness and energy.
+
+The site is available in Spanish (es-MX) and English (en). Contact: sistemas@sipintegrales.com · WhatsApp +52 664 529 6002.
+
+## Español
+
+- [Inicio](/es): qué hace SIP y para quién
+- [Servicios](/es/servicios): dashboards, telemetría IoT, integración de sistemas, automatización, análisis de datos, apps y software a la medida
+- [Casos](/es/casos): tablero de producción en tiempo real, sistema Andon multilínea, aplicaciones web y móviles
+- [Nosotros](/es/nosotros): equipo, visión y misión
+- [Contacto](/es/contacto): formulario, correo y WhatsApp
+
+## English
+
+- [Home](/en): what SIP does and who it is for
+- [Services](/en/services): dashboards, IoT telemetry, systems integration, automation, data analytics, apps and custom software
+- [Case studies](/en/case-studies): real-time production dashboard, multi-line Andon system, web and mobile apps
+- [About](/en/about): team, vision and mission
+- [Contact](/en/contact): form, email and WhatsApp

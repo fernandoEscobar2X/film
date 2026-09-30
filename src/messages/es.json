@@ -1,0 +1,152 @@
+{
+  "Meta": {
+    "siteName": "SIP Sistemas Inteligentes del Pacífico",
+    "titleTemplate": "%s | SIP",
+    "home": {
+      "title": "Software industrial y datos en tiempo real",
+      "description": "Conectamos procesos y datos para que tu operación decida en tiempo real: dashboards, telemetría IoT, integración de sistemas y software a la medida."
+    },
+    "services": {
+      "title": "Servicios",
+      "description": "Dashboards, aplicaciones web y móviles, telemetría industrial, integración de sistemas, automatización, análisis de datos y software a la medida."
+    },
+    "cases": {
+      "title": "Casos",
+      "description": "Sistemas que ya operan en planta: tableros de producción en tiempo real, Andon multilínea y aplicaciones para equipos en campo."
+    },
+    "about": {
+      "title": "Nosotros",
+      "description": "Somos un equipo de Tijuana que une programación, análisis de datos y experiencia industrial para resolver problemas reales de operación."
+    },
+    "contact": {
+      "title": "Contacto",
+      "description": "Cuéntanos qué pasa en tu operación. Respondemos por correo o por WhatsApp desde Tijuana, Baja California."
+    },
+    "notFound": {
+      "title": "Página no encontrada",
+      "description": "La página que buscas no existe o cambió de lugar."
+    }
+  },
+  "Nav": {
+    "home": "Inicio",
+    "services": "Servicios",
+    "cases": "Casos",
+    "about": "Nosotros",
+    "contact": "Contacto",
+    "primary": "Navegación principal",
+    "footer": "Navegación secundaria"
+  },
+  "Header": {
+    "homeLink": "SIP, ir al inicio",
+    "menu": "Menú",
+    "closeMenu": "Cerrar",
+    "cta": "Hablemos"
+  },
+  "Language": {
+    "label": "Idioma",
+    "current": "Español",
+    "other": "English",
+    "otherLabel": "Ver esta página en inglés"
+  },
+  "SkipLink": "Saltar al contenido",
+  "WhatsApp": {
+    "label": "WhatsApp",
+    "title": "Escríbenos por WhatsApp",
+    "message": "Hola, me interesa platicar con SIP sobre un proyecto.",
+    "qrLabel": "Código QR que abre un chat de WhatsApp con SIP",
+    "openInApp": "Abrir en WhatsApp",
+    "close": "Cerrar"
+  },
+  "Footer": {
+    "statement": "Tecnología para operar mejor, hecha en Tijuana.",
+    "location": "Tijuana, Baja California, México",
+    "emailLabel": "Correo",
+    "whatsappLabel": "WhatsApp",
+    "rights": "Sistemas Inteligentes del Pacífico"
+  },
+  "Home": {
+    "heroTitle": "<l>Tu operación,</l> <l>en tiempo real.</l>",
+    "heroLead": "Conectamos tus procesos y tus datos para que decidas con lo que está pasando ahora, no con el reporte de ayer.",
+    "heroCta": "Platiquemos tu proyecto"
+  },
+  "Hero": {
+    "carousel": "carrusel",
+    "industries": "Industrias"
+  },
+  "Industries": {
+    "manufactura": {
+      "name": "Manufactura",
+      "measure": "Cada paro de línea, con su causa y su costo, en el momento en que ocurre."
+    },
+    "logistica": {
+      "name": "Logística",
+      "measure": "Cada tráiler en patio y cada andén, con la hora real de cada movimiento."
+    },
+    "construccion": {
+      "name": "Construcción",
+      "measure": "El avance de la obra y la maquinaria en campo, sin esperar el reporte semanal."
+    },
+    "agroindustria": {
+      "name": "Agroindustria",
+      "measure": "La humedad de cada túnel decide el riego, no el calendario."
+    },
+    "energia": {
+      "name": "Energía",
+      "measure": "Generación y alarmas de cada activo, en un solo tablero."
+    }
+  },
+  "Manifesto": {
+    "label": "Quiénes somos",
+    "text": "Somos un equipo de ingeniería en Tijuana. Conectamos tus máquinas con tus sistemas para que los <line>datos</line> lleguen a quien decide en <clock>tiempo real</clock>. Sin hojas de cálculo que se contradicen ni reportes que llegan tarde: tus <bars>procesos</bars>, a la vista y medidos."
+  },
+  "Contact": {
+    "title": "Hagamos grande tu idea.",
+    "lead": "Cuéntanos qué pasa en tu operación y qué te gustaría ver en tiempo real. Te responde el equipo que lo va a construir.",
+    "channels": "Canales directos",
+    "emailLabel": "Correo",
+    "copy": "Copiar correo",
+    "copied": "Correo copiado",
+    "whatsappLabel": "WhatsApp",
+    "timeLabel": "Hora en Tijuana",
+    "yourTime": "tu hora: {time}",
+    "form": {
+      "label": "Formulario de contacto",
+      "name": "Nombre",
+      "company": "Empresa",
+      "email": "Correo",
+      "phone": "WhatsApp o teléfono",
+      "industry": "Industria",
+      "industryNone": "Sin especificar",
+      "industryOther": "Otra",
+      "message": "¿Qué pasa en tu operación?",
+      "optional": "opcional",
+      "submit": "Enviar mensaje",
+      "sending": "Enviando…",
+      "sentTitle": "Recibimos tu mensaje.",
+      "sent": "Te escribimos a {email} desde Tijuana.",
+      "failed": "No pudimos enviarlo. Escríbenos a {email} o por WhatsApp.",
+      "summary": "Revisa los campos marcados.",
+      "errors": {
+        "required": "Este campo es necesario.",
+        "tooShort": "Escribe un poco más.",
+        "tooLong": "Es demasiado largo.",
+        "email": "Revisa el correo: parece incompleto.",
+        "phone": "Revisa el número."
+      }
+    },
+    "agent": {
+      "tool": "Envía un mensaje al equipo de SIP (Sistemas Inteligentes del Pacífico, Tijuana) para platicar o cotizar un proyecto: tableros en tiempo real, telemetría industrial, integración de sistemas, apps web y móviles o software a medida.",
+      "name": "Nombre de la persona que escribe.",
+      "company": "Empresa u organización (opcional).",
+      "email": "Correo al que SIP debe responder.",
+      "phone": "WhatsApp o teléfono con lada (opcional).",
+      "industry": "Industria de la operación: manufactura, logistica, construccion, agroindustria, energia u otra (opcional).",
+      "message": "Qué pasa en la operación y qué se quiere lograr (mínimo 10 caracteres)."
+    }
+  },
+  "NotFound": {
+    "title": "Esta página no existe.",
+    "lead": "Puede que haya cambiado de lugar. Desde el inicio encuentras todo lo que hacemos.",
+    "back": "Volver al inicio"
+  }
+}

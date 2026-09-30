@@ -1,0 +1,152 @@
+{
+  "Meta": {
+    "siteName": "SIP Sistemas Inteligentes del Pacífico",
+    "titleTemplate": "%s | SIP",
+    "home": {
+      "title": "Industrial software and real-time data",
+      "description": "We connect processes and data so your operation can decide in real time: dashboards, IoT telemetry, systems integration and custom software."
+    },
+    "services": {
+      "title": "Services",
+      "description": "Dashboards, web and mobile apps, industrial telemetry, systems integration, process automation, data analytics and custom software."
+    },
+    "cases": {
+      "title": "Case studies",
+      "description": "Systems already running on the plant floor: real-time production dashboards, multi-line Andon and apps for field teams."
+    },
+    "about": {
+      "title": "About",
+      "description": "A Tijuana-based team combining software engineering, data analytics and industrial know-how to solve real operational problems."
+    },
+    "contact": {
+      "title": "Contact",
+      "description": "Tell us what is happening on your floor. We reply by email or WhatsApp from Tijuana, Baja California."
+    },
+    "notFound": {
+      "title": "Page not found",
+      "description": "The page you are looking for does not exist or has moved."
+    }
+  },
+  "Nav": {
+    "home": "Home",
+    "services": "Services",
+    "cases": "Case studies",
+    "about": "About",
+    "contact": "Contact",
+    "primary": "Main navigation",
+    "footer": "Secondary navigation"
+  },
+  "Header": {
+    "homeLink": "SIP, go to home page",
+    "menu": "Menu",
+    "closeMenu": "Close",
+    "cta": "Let’s talk"
+  },
+  "Language": {
+    "label": "Language",
+    "current": "English",
+    "other": "Español",
+    "otherLabel": "View this page in Spanish"
+  },
+  "SkipLink": "Skip to content",
+  "WhatsApp": {
+    "label": "WhatsApp",
+    "title": "Message us on WhatsApp",
+    "message": "Hi, I’d like to talk to SIP about a project.",
+    "qrLabel": "QR code that opens a WhatsApp chat with SIP",
+    "openInApp": "Open in WhatsApp",
+    "close": "Close"
+  },
+  "Footer": {
+    "statement": "Technology to run operations better, built in Tijuana.",
+    "location": "Tijuana, Baja California, Mexico",
+    "emailLabel": "Email",
+    "whatsappLabel": "WhatsApp",
+    "rights": "Sistemas Inteligentes del Pacífico"
+  },
+  "Home": {
+    "heroTitle": "<l>Your operation,</l> <l>in real time.</l>",
+    "heroLead": "We connect your processes and your data so every decision runs on what is happening now, not on yesterday’s report.",
+    "heroCta": "Let’s talk about your project"
+  },
+  "Hero": {
+    "carousel": "carousel",
+    "industries": "Industries"
+  },
+  "Industries": {
+    "manufactura": {
+      "name": "Manufacturing",
+      "measure": "Every line stop, with its cause and its cost, the moment it happens."
+    },
+    "logistica": {
+      "name": "Logistics",
+      "measure": "Every trailer in the yard and every dock door, timed as it moves."
+    },
+    "construccion": {
+      "name": "Construction",
+      "measure": "Site progress and field equipment, without waiting for the weekly report."
+    },
+    "agroindustria": {
+      "name": "Agribusiness",
+      "measure": "Each tunnel’s soil moisture drives irrigation, not the calendar."
+    },
+    "energia": {
+      "name": "Energy",
+      "measure": "Output and alarms from every asset, on a single dashboard."
+    }
+  },
+  "Manifesto": {
+    "label": "Who we are",
+    "text": "We are an engineering team in Tijuana. We connect your machines to your systems so <line>data</line> reaches the people who decide in <clock>real time</clock>. No spreadsheets that contradict each other, no reports that arrive late: your <bars>processes</bars>, visible and measured."
+  },
+  "Contact": {
+    "title": "Let’s make your idea big.",
+    "lead": "Tell us what is happening in your operation and what you would like to see in real time. The team that will build it is the one that answers.",
+    "channels": "Direct channels",
+    "emailLabel": "Email",
+    "copy": "Copy email",
+    "copied": "Email copied",
+    "whatsappLabel": "WhatsApp",
+    "timeLabel": "Time in Tijuana",
+    "yourTime": "your time: {time}",
+    "form": {
+      "label": "Contact form",
+      "name": "Name",
+      "company": "Company",
+      "email": "Email",
+      "phone": "WhatsApp or phone",
+      "industry": "Industry",
+      "industryNone": "Not specified",
+      "industryOther": "Other",
+      "message": "What is happening in your operation?",
+      "optional": "optional",
+      "submit": "Send message",
+      "sending": "Sending…",
+      "sentTitle": "We got your message.",
+      "sent": "We will write to {email} from Tijuana.",
+      "failed": "We couldn’t send it. Write to {email} or on WhatsApp.",
+      "summary": "Please check the highlighted fields.",
+      "errors": {
+        "required": "This field is required.",
+        "tooShort": "Please write a bit more.",
+        "tooLong": "This is too long.",
+        "email": "Check the email: it looks incomplete.",
+        "phone": "Check the number."
+      }
+    },
+    "agent": {
+      "tool": "Sends a message to the SIP team (Sistemas Inteligentes del Pacífico, Tijuana, Mexico) to discuss or quote a project: real-time dashboards, industrial telemetry, systems integration, web and mobile apps or custom software.",
+      "name": "Name of the person writing.",
+      "company": "Company or organization (optional).",
+      "email": "Email SIP should reply to.",
+      "phone": "WhatsApp or phone number with country code (optional).",
+      "industry": "Industry of the operation: manufactura, logistica, construccion, agroindustria, energia or otra (optional).",
+      "message": "What is happening in the operation and what should be achieved (at least 10 characters)."
+    }
+  },
+  "NotFound": {
+    "title": "This page doesn’t exist.",
+    "lead": "It may have moved. The home page leads to everything we do.",
+    "back": "Back to home"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "SIP — Sistemas Inteligentes del Pacífico",
+  "source": "Dos imágenes JPEG entregadas; valores tomados de zonas planas y redondeados. El azul de la I original es un degradado.",
+  "colors": [
+    {
+      "name": "Azul marino del logo",
+      "token": "navy-logo",
+      "hex": "#1D2C41",
+      "use": "Logotipo sobre fondos claros, títulos y texto destacado"
+    },
+    {
+      "name": "Azul marino profundo",
+      "token": "navy-deep",
+      "hex": "#011631",
+      "use": "Fondos oscuros, avatar y cabeceras"
+    },
+    {
+      "name": "Azul Pacífico claro",
+      "token": "blue-logo-top",
+      "hex": "#1777BB",
+      "use": "Inicio del degradado de la I"
+    },
+    {
+      "name": "Azul Pacífico medio",
+      "token": "blue-logo-mid",
+      "hex": "#1469AC",
+      "use": "Centro del degradado y texto secundario"
+    },
+    {
+      "name": "Azul Pacífico oscuro",
+      "token": "blue-logo-bottom",
+      "hex": "#145998",
+      "use": "Final del degradado de la I"
+    },
+    {
+      "name": "Azul digital",
+      "token": "blue-digital",
+      "hex": "#0189F5",
+      "use": "Acentos de la lámina, botones e iconos"
+    },
+    {
+      "name": "Azul digital profundo",
+      "token": "blue-digital-dark",
+      "hex": "#0076D2",
+      "use": "Final del degradado de acentos sobre oscuro"
+    },
+    {
+      "name": "Blanco hielo",
+      "token": "ice",
+      "hex": "#F3F8FD",
+      "use": "Fondos claros y superficies"
+    },
+    {
+      "name": "Blanco",
+      "token": "white",
+      "hex": "#FFFFFF",
+      "use": "Fondos y logo blanco"
+    }
+  ]
+}

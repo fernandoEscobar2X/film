@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Especímenes SIP</title>
+<style>
+  @font-face{font-family:"Hubot";src:url(https://cdn.jsdelivr.net/npm/@fontsource-variable/hubot-sans@5.3.0/files/hubot-sans-latin-wdth-normal.woff2) format("woff2");font-weight:200 900;font-stretch:75% 125%}
+  @font-face{font-family:"Mona";src:url(https://cdn.jsdelivr.net/npm/@fontsource-variable/mona-sans@5.3.0/files/mona-sans-latin-wdth-normal.woff2) format("woff2");font-weight:200 900;font-stretch:75% 125%}
+  @font-face{font-family:"Datatype";src:url(https://cdn.jsdelivr.net/npm/@fontsource-variable/datatype@5.3.0/files/datatype-latin-wdth-normal.woff2) format("woff2");font-weight:100 900;font-stretch:0% 100%}
+  @font-face{font-family:"Doto";src:url(https://cdn.jsdelivr.net/npm/@fontsource-variable/doto@5.3.0/files/doto-latin-full-normal.woff2) format("woff2");font-weight:100 900}
+  @font-face{font-family:"SpecialGothic";src:url(https://cdn.jsdelivr.net/npm/@fontsource-variable/special-gothic@5.3.0/files/special-gothic-latin-wdth-normal.woff2) format("woff2");font-weight:400 700;font-stretch:75% 125%}
+  @font-face{font-family:"Hanken";src:url(https://cdn.jsdelivr.net/npm/@fontsource-variable/hanken-grotesk@5.3.0/files/hanken-grotesk-latin-wght-normal.woff2) format("woff2");font-weight:100 900}
+  @font-face{font-family:"Archivo";src:url(https://cdn.jsdelivr.net/npm/@fontsource-variable/archivo@5.3.0/files/archivo-latin-wdth-normal.woff2) format("woff2");font-weight:100 900;font-stretch:62% 125%}
+  @font-face{font-family:"Martian";src:url(https://cdn.jsdelivr.net/npm/@fontsource-variable/martian-mono@5.3.0/files/martian-mono-latin-wdth-normal.woff2) format("woff2");font-weight:100 800;font-stretch:75% 112.5%}
+  @font-face{font-family:"BigShoulders";src:url(https://cdn.jsdelivr.net/npm/@fontsource-variable/big-shoulders@5.3.0/files/big-shoulders-latin-opsz-normal.woff2) format("woff2");font-weight:100 900}
+
+  :root{--noche:#011631;--marino:#1D2C41;--azul:#0189F5;--azul-medio:#1469AC;--hielo:#F3F8FD}
+  *{box-sizing:border-box;margin:0}
+  body{background:#0b0f16;color:var(--hielo)}
+  section{padding:56px 64px 64px;border-bottom:6px solid #0b0f16;background:var(--noche);position:relative}
+  section:nth-child(even){background:var(--hielo);color:var(--marino)}
+  .tag{font:600 13px/1 "Mona",sans-serif;opacity:.7;margin-bottom:28px;display:block;color:#ffcf5a}
+  section:nth-child(even) .tag{color:#b06a00}
+  .row{display:grid;grid-template-columns:1.35fr 1fr;gap:56px;align-items:end}
+  h1{margin:0 0 20px}
+  p{max-width:46ch}
+  .readout{margin-top:28px;display:flex;gap:28px;align-items:baseline;flex-wrap:wrap}
+  ul{list-style:none;padding:0;margin-top:26px;columns:2;column-gap:28px}
+  li{padding:6px 0}
+
+  /* A — Instrumento */
+  .a h1{font-family:"Hubot";font-weight:760;font-stretch:118%;font-size:clamp(40px,6.2vw,92px);line-height:.95;letter-spacing:-.01em}
+  .a p,.a li{font-family:"Mona";font-size:19px;line-height:1.5;font-weight:400}
+  .a li{font-stretch:88%;font-weight:560}
+  .a .chart{font-family:"Datatype";font-size:40px;color:var(--azul);font-weight:500}
+  .a .num{font-family:"Mona";font-stretch:110%;font-weight:640;font-size:28px;font-variant-numeric:tabular-nums}
+
+  /* B — Taller */
+  .b h1{font-family:"SpecialGothic";font-weight:700;font-stretch:125%;font-size:clamp(38px,5.8vw,86px);line-height:.95;text-transform:none}
+  .b p,.b li{font-family:"Hanken";font-size:19px;line-height:1.5}
+  .b li{font-family:"SpecialGothic";font-stretch:75%;font-weight:600;font-size:22px}
+  .b .led{font-family:"Doto";font-weight:800;font-size:64px;color:#1bd67a;line-height:1;font-variation-settings:"ROND" 100}
+  .b .led.amber{color:#ffb020}
+
+  /* C — Archivo */
+  .c h1{font-family:"Archivo";font-weight:800;font-stretch:125%;font-size:clamp(38px,6vw,90px);line-height:.95;letter-spacing:-.015em}
+  .c p{font-family:"Archivo";font-stretch:100%;font-size:19px;line-height:1.5}
+  .c li{font-family:"Archivo";font-stretch:62%;font-weight:700;font-size:24px}
+  .c .mono{font-family:"Martian";font-size:15px;font-stretch:100%;font-weight:400}
+
+  /* D — Señal */
+  .d h1{font-family:"BigShoulders";font-weight:800;font-size:clamp(52px,8.6vw,130px);line-height:.88;text-transform:uppercase;font-variation-settings:"opsz" 72}
+  .d p,.d li{font-family:"Mona";font-size:19px;line-height:1.5}
+  .d .mono{font-family:"Martian";font-size:15px;font-weight:400;font-stretch:87%}
+
+  @media (max-width:600px){section{padding:36px 20px 44px}.row{grid-template-columns:1fr;gap:18px}ul{columns:1}.a .chart{font-size:32px}}
+</style>
+</head>
+<body>
+<section class="a">
+  <span class="tag">A · Instrumento — Hubot Sans (display, eje de ancho) + Mona Sans (texto) + Datatype (datos)</span>
+  <div class="row">
+    <h1>Tu operación, en tiempo real.</h1>
+    <div>
+      <p>Conectamos procesos y datos para que tu planta decida con información de este minuto, no del reporte de ayer.</p>
+      <div class="readout"><span class="num">OEE 87.4 %</span><span class="chart">{l:40,52,48,61,70,66,82,87}</span><span class="chart">{b:30,45,80,62,90,74}</span></div>
+    </div>
+  </div>
+  <ul><li>Dashboards y visualización</li><li>Telemetría industrial (IoT)</li><li>Integración de sistemas</li><li>Automatización de procesos</li></ul>
+</section>
+
+<section class="b">
+  <span class="tag">B · Taller — Special Gothic (display extendida / condensada) + Hanken Grotesk (texto) + Doto (LED)</span>
+  <div class="row">
+    <h1>Tu operación, en tiempo real.</h1>
+    <div>
+      <p>Conectamos procesos y datos para que tu planta decida con información de este minuto, no del reporte de ayer.</p>
+      <div class="readout"><span class="led">L3 87</span><span class="led amber">L5 12:40</span></div>
+    </div>
+  </div>
+  <ul><li>Dashboards y visualización</li><li>Telemetría industrial (IoT)</li><li>Integración de sistemas</li><li>Automatización de procesos</li></ul>
+</section>
+
+<section class="c">
+  <span class="tag">C · Archivo (Omnibus-Type, Argentina) — superfamilia de 62 % a 125 % de ancho + Martian Mono</span>
+  <div class="row">
+    <h1>Tu operación, en tiempo real.</h1>
+    <div>
+      <p>Conectamos procesos y datos para que tu planta decida con información de este minuto, no del reporte de ayer.</p>
+      <div class="readout"><span class="mono">Línea 3 · 14:32:07 · OEE 87.4 %</span></div>
+    </div>
+  </div>
+  <ul><li>Dashboards y visualización</li><li>Telemetría industrial (IoT)</li><li>Integración de sistemas</li><li>Automatización de procesos</li></ul>
+</section>
+
+<section class="d">
+  <span class="tag">D · Señal — Big Shoulders (display condensada industrial) + Mona Sans + Martian Mono</span>
+  <div class="row">
+    <h1>Tu operación, en tiempo real.</h1>
+    <div>
+      <p>Conectamos procesos y datos para que tu planta decida con información de este minuto, no del reporte de ayer.</p>
+      <div class="readout"><span class="mono">Línea 3 · 14:32:07 · OEE 87.4 %</span></div>
+    </div>
+  </div>
+  <ul><li>Dashboards y visualización</li><li>Telemetría industrial (IoT)</li><li>Integración de sistemas</li><li>Automatización de procesos</li></ul>
+</section>
+</body>
+</html>

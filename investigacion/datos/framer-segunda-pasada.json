@@ -1,0 +1,102 @@
+{
+ "droplet-reveal": [
+  "h=4888"
+ ],
+ "screeninghero": [
+  "h=900"
+ ],
+ "sticky-overlap": [
+  "h=2700"
+ ],
+ "kinetic-marks": [
+  "h=1027"
+ ],
+ "focusframe-cursor": [
+  "h=900"
+ ],
+ "cursor-crosshair": [
+  "h=900"
+ ],
+ "photo-hotspots": [
+  "h=900"
+ ],
+ "storyline-reveal": [
+  "h=3200"
+ ],
+ "fogtype": [
+  "h=3600"
+ ],
+ "image-flow": [
+  "h=900"
+ ],
+ "perspective-tiles": [
+  "h=900"
+ ],
+ "worddrum": [
+  "h=900"
+ ],
+ "lantern-reveal": [
+  "h=900"
+ ],
+ "svg-reveal-on-scroll": [
+  "h=1800"
+ ],
+ "ripple-background": [
+  "h=900"
+ ],
+ "rays": [
+  "h=900"
+ ],
+ "timezone-indicator": [
+  "h=900"
+ ],
+ "flashlight-reveal": [
+  "h=900",
+  "mobile horizontal overflow"
+ ],
+ "viewfinder": [
+  "h=933"
+ ],
+ "video-scrubber-pro": [
+  "h=4553"
+ ],
+ "scrollprogressticks": [
+  "h=1200"
+ ],
+ "vision-engine": [
+  "h=900"
+ ],
+ "scroll-spy-nav": [
+  "h=1650"
+ ],
+ "before-after-case": [
+  "h=900"
+ ],
+ "gauge-dial-loader": [
+  "h=900"
+ ],
+ "animated-fittext-pro": [
+  "h=900"
+ ],
+ "imagesweep": [
+  "h=5400"
+ ],
+ "horizontal-scroll-5s": [
+  "h=3600"
+ ],
+ "reveal-slideshow": [
+  "h=900"
+ ],
+ "how-we-work": [
+  "h=5940"
+ ],
+ "scroll-zoom": [
+  "h=1893"
+ ],
+ "topographic-rings": [
+  "h=2700"
+ ],
+ "hoverlight": [
+  "h=900"
+ ]
+}

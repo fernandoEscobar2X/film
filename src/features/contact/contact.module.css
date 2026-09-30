@@ -1,0 +1,257 @@
+@layer components {
+  .section {
+    padding-block: var(--spacing-section);
+  }
+
+  .layout {
+    display: grid;
+    gap: clamp(3rem, 2rem + 4vw, 6rem);
+
+    @media (width >= 64rem) {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      align-items: start;
+    }
+  }
+
+  .intro {
+    display: grid;
+    gap: 1.75rem;
+    align-content: start;
+
+    @media (width >= 64rem) {
+      position: sticky;
+      inset-block-start: 7rem;
+    }
+  }
+
+  .title {
+    margin: 0;
+    max-width: 12ch;
+    text-wrap: balance;
+  }
+
+  .lead {
+    margin: 0;
+    max-width: 38ch;
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
+    color: var(--surface-muted);
+  }
+
+  /* ---------- Canales directos ---------- */
+  .channels {
+    display: grid;
+    gap: 1.25rem;
+    margin: 0.5rem 0 0;
+  }
+
+  .channel {
+    display: grid;
+    gap: 0.2rem;
+
+    dt {
+      font-family: var(--font-display);
+      font-size: var(--text-xs);
+      font-weight: var(--font-weight-medium);
+      font-stretch: 88%;
+      color: var(--surface-muted);
+    }
+
+    dd {
+      margin: 0;
+    }
+  }
+
+  .channelValue {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 1rem;
+    font-size: var(--text-lg);
+
+    a {
+      text-decoration: none;
+      background-image: linear-gradient(currentcolor, currentcolor);
+      background-size: 100% 1px;
+      background-position: 0 100%;
+      background-repeat: no-repeat;
+    }
+
+    a:hover {
+      color: var(--surface-accent);
+    }
+  }
+
+  .copy {
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--surface-line);
+    background: none;
+    color: var(--surface-fg);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-semibold);
+    font-stretch: 90%;
+    cursor: pointer;
+    transition: border-color var(--duration-fast) var(--ease-sip-out);
+  }
+
+  .copy:hover {
+    border-color: var(--surface-fg);
+  }
+
+  /* ---------- Formulario ---------- */
+  .form {
+    display: grid;
+    gap: 1.75rem;
+  }
+
+  .row {
+    display: grid;
+    gap: 1.75rem;
+
+    @media (width >= 40rem) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .field {
+    display: grid;
+    gap: 0.45rem;
+    align-content: start;
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 0.7rem 0;
+      border: 0;
+      border-block-end: 1px solid var(--color-acero);
+      border-radius: 0;
+      background: none;
+      color: var(--surface-fg);
+      font: inherit;
+      font-size: var(--text-lg);
+      transition: border-color var(--duration-fast) var(--ease-sip-out);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 8rem;
+    }
+
+    input:hover,
+    select:hover,
+    textarea:hover {
+      border-block-end-color: var(--surface-fg);
+    }
+
+    /* El foco es una línea más gruesa en el azul de la marca, sin contorno extra. */
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline: none;
+      border-block-end-color: var(--color-senal-600);
+      box-shadow: 0 1px 0 var(--color-senal-600);
+    }
+
+    [aria-invalid="true"] {
+      border-block-end-color: var(--color-estado-paro);
+      box-shadow: 0 1px 0 var(--color-estado-paro);
+    }
+  }
+
+  .label {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-semibold);
+    font-stretch: 92%;
+  }
+
+  .optional {
+    font-weight: var(--font-weight-regular);
+    color: var(--surface-muted);
+  }
+
+  /* Flecha del select dibujada con dos trazos (sin íconos de sistema). */
+  .select {
+    appearance: none;
+    padding-inline-end: 2rem;
+    background-image:
+      linear-gradient(45deg, transparent 50%, currentcolor 50%),
+      linear-gradient(135deg, currentcolor 50%, transparent 50%);
+    background-position:
+      calc(100% - 0.85rem) 55%,
+      calc(100% - 0.5rem) 55%;
+    background-size: 0.35rem 0.35rem;
+    background-repeat: no-repeat;
+    cursor: pointer;
+  }
+
+  /* El error no depende solo del color: texto oscuro con marca roja (contraste AA). */
+  .error {
+    margin: 0;
+    padding-inline-start: 0.6rem;
+    border-inline-start: 3px solid var(--color-estado-paro);
+    font-size: var(--text-sm);
+    color: var(--surface-fg);
+  }
+
+  .trap {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
+    padding-block-start: 0.5rem;
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: progress;
+      opacity: 0.7;
+    }
+  }
+
+  .feedback {
+    margin: 0;
+    font-size: var(--text-sm);
+    max-width: 40ch;
+  }
+
+  .sent {
+    display: grid;
+    gap: 0.75rem;
+    align-content: start;
+    padding-block: 2rem;
+    border-block-start: 3px solid var(--color-senal-600);
+    font-size: var(--text-lg);
+
+    p {
+      margin: 0;
+    }
+  }
+
+  .sent:focus-visible {
+    outline: 2px solid var(--surface-accent);
+    outline-offset: 6px;
+  }
+
+  .sentTitle {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
+    font-weight: var(--font-weight-bold);
+    font-stretch: 108%;
+  }
+}
