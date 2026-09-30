@@ -1,0 +1,859 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lente de datos SIP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hubot+Sans:wdth,wght@75..125,500..900&family=Mona+Sans:wdth,wght@75..125,400..700&display=swap">
+<style>
+  /*
+   * Layout: la nave a sangre completa; el titular abajo a la izquierda, sobre el piso calmo del
+   * video; la lente (la I del logo, inclinada 6°) sigue al cursor y revela la capa de datos.
+   * Una sola apariencia oscura: el hero es una escena de noche.
+   */
+  :root {
+    color-scheme: dark;
+    --noche: #011631;
+    --marino: #1d2c41;
+    --senal: #0189f5;
+    --senal-profundo: #0076d2;
+    --pacifico: #145998;
+    --hielo: #f3f8fd;
+    --bruma: #a9b9ca;
+    --acero: #4b5d73;
+    --operando: #2fb872;
+    --alerta: #f2a516;
+    --display: "Hubot Sans", "Mona Sans", "Segoe UI", system-ui, sans-serif;
+    --texto: "Mona Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --gutter: max(16px, 4.5vw);
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--noche);
+    color: var(--hielo);
+    font-family: var(--texto);
+    font-size: 16px;
+    overflow: hidden;
+  }
+
+  .hero {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    isolation: isolate;
+    outline: none;
+    touch-action: none;
+  }
+
+  .hero:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--senal);
+  }
+
+  /* Capas del video: póster (LCP), video apilado (respaldo sin WebGL) y el lienzo de la lente. */
+  .poster,
+  .plate,
+  .lens {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .poster {
+    object-fit: cover;
+    z-index: 0;
+  }
+
+  .plate {
+    overflow: hidden;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.4s linear;
+  }
+
+  /* El video apila física arriba y datos abajo: sin WebGL se muestra solo la mitad física. */
+  .plate video {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 200%;
+    object-fit: cover;
+  }
+
+  .lens {
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.4s linear;
+  }
+
+  .hero[data-estado="video"] .plate,
+  .hero[data-estado="lente"] .plate,
+  .hero[data-estado="lente"] .lens {
+    opacity: 1;
+  }
+
+  /* Etiquetas de la lente: el trazo del logo sube desde la torreta y gira hacia el dato. */
+  .labels {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .label {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: grid;
+    gap: 2px;
+    padding: 7px 10px 8px;
+    min-width: 0;
+    background: color-mix(in srgb, var(--noche) 86%, transparent);
+    border: 1px solid color-mix(in srgb, var(--hielo) 22%, transparent);
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.25;
+    font-variation-settings: "wdth" 88;
+    white-space: nowrap;
+    transition: opacity 0.18s linear;
+  }
+
+  .label[hidden] {
+    display: grid !important;
+    opacity: 0;
+  }
+
+  .label .name {
+    font-weight: 600;
+    color: var(--hielo);
+  }
+
+  .label .reading {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    color: var(--bruma);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .label .state {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--hielo);
+  }
+
+  .label .state::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--operando);
+  }
+
+  .label[data-estado="alerta"] {
+    border-color: color-mix(in srgb, var(--alerta) 70%, transparent);
+  }
+
+  .label[data-estado="alerta"] .state {
+    color: var(--alerta);
+  }
+
+  .label[data-estado="alerta"] .state::before {
+    background: var(--alerta);
+  }
+
+  .wires {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .wires path {
+    fill: none;
+    stroke: var(--hielo);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    transition: opacity 0.18s linear;
+  }
+
+  .wires path.alerta {
+    stroke: var(--alerta);
+  }
+
+  .wires circle {
+    fill: var(--hielo);
+  }
+
+  .wires circle.alerta {
+    fill: var(--alerta);
+  }
+
+  /* Texto del hero. */
+  .bar {
+    position: absolute;
+    z-index: 4;
+    left: 0;
+    right: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: calc(env(safe-area-inset-top, 0px) + 22px) var(--gutter) 0;
+  }
+
+  .logo {
+    display: block;
+    flex: none;
+    height: 26px;
+    width: 76px;
+  }
+
+  .clock {
+    margin: 0;
+    color: var(--bruma);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    font-variation-settings: "wdth" 88;
+  }
+
+  .clock time {
+    color: var(--hielo);
+    font-weight: 600;
+  }
+
+  .copy {
+    position: absolute;
+    z-index: 4;
+    left: 0;
+    bottom: 0;
+    display: grid;
+    gap: 18px;
+    max-width: min(760px, 100%);
+    padding: 0 var(--gutter) calc(env(safe-area-inset-bottom, 0px) + clamp(28px, 8vh, 88px));
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--display);
+    font-size: clamp(2.5rem, 6.4vw, 6.6rem);
+    font-weight: 780;
+    font-variation-settings: "wdth" 118;
+    line-height: 0.94;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+    max-width: 11ch;
+  }
+
+  .lede {
+    margin: 0;
+    max-width: 38ch;
+    color: var(--bruma);
+    font-size: clamp(1rem, 1.25vw, 1.2rem);
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+
+  .cta {
+    justify-self: start;
+    color: var(--hielo);
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    padding: 12px 18px;
+    border-radius: 6px;
+    background: var(--senal-profundo);
+    transition: background-color 0.15s linear;
+  }
+
+  .cta:hover {
+    background: var(--pacifico);
+  }
+
+  .cta:focus-visible,
+  .toggle:focus-visible {
+    outline: 2px solid var(--hielo);
+    outline-offset: 3px;
+  }
+
+  .controls {
+    position: absolute;
+    z-index: 4;
+    right: 0;
+    bottom: 0;
+    display: grid;
+    justify-items: end;
+    gap: 10px;
+    padding: 0 var(--gutter) calc(env(safe-area-inset-bottom, 0px) + clamp(28px, 8vh, 88px));
+  }
+
+  .hint {
+    margin: 0;
+    max-width: 30ch;
+    text-align: right;
+    color: var(--bruma);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .toggle {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--hielo);
+    background: color-mix(in srgb, var(--noche) 70%, transparent);
+    border: 1px solid color-mix(in srgb, var(--hielo) 35%, transparent);
+    border-radius: 6px;
+    padding: 9px 14px;
+    cursor: pointer;
+  }
+
+  .toggle[aria-pressed="true"] {
+    border-color: var(--senal);
+    color: var(--hielo);
+    background: color-mix(in srgb, var(--senal) 22%, var(--noche));
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Móvil: el titular ocupa el 40 % inferior, la lente barre sola y se arrastra con el dedo. */
+  @media (max-width: 720px) {
+    .copy {
+      max-width: 100%;
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
+      gap: 12px;
+    }
+
+    h1 {
+      font-variation-settings: "wdth" 100;
+      font-size: clamp(2.2rem, 11vw, 3.4rem);
+    }
+
+    .controls {
+      left: 0;
+      justify-items: start;
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+    }
+
+    .hint {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .plate,
+    .lens,
+    .label,
+    .wires path {
+      transition: none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<main class="hero" id="hero" tabindex="0" data-estado="poster" data-media="../public/media/hero/" data-clip="manufactura-noche-h"
+  aria-describedby="hero-descripcion">
+  <picture>
+    <source srcset="../public/media/hero/manufactura-noche-h.avif" type="image/avif">
+    <img class="poster" src="../public/media/hero/manufactura-noche-h.webp" alt="" fetchpriority="high">
+  </picture>
+  <div class="plate" aria-hidden="true">
+    <video id="video" muted loop playsinline preload="auto" crossorigin="anonymous">
+      <source src="../public/media/hero/manufactura-noche-h.webm" type='video/webm; codecs="av01.0.08M.10"'>
+      <source src="../public/media/hero/manufactura-noche-h.mp4" type="video/mp4">
+    </video>
+  </div>
+  <canvas class="lens" id="lens" aria-hidden="true"></canvas>
+  <div class="labels" id="labels" aria-hidden="true">
+    <svg class="wires" id="wires"></svg>
+  </div>
+
+  <p class="sr-only" id="hero-descripcion">
+    Video: una línea de montaje de electrónica en una maquiladora de Tijuana, de noche. Dentro de la
+    lente se ve la misma línea como la ve SIP: cada máquina con su estado, las tarjetas avanzando por
+    la banda y una alerta en un pick-and-place que aparece y se resuelve.
+  </p>
+
+  <header class="bar">
+    <svg class="logo" viewBox="50 260 900 310" role="img" aria-label="SIP">
+      <defs>
+        <linearGradient id="i-azul" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#0189F5" />
+          <stop offset="1" stop-color="#0076D2" />
+        </linearGradient>
+      </defs>
+      <path fill="#F3F8FD"
+        d="M 430 270 H 170 C 120 270 84 305 84 357 C 84 409 120 445 169 445 H 333 C 354 445 368 458 368 479 C 368 499 354 512 333 512 H 97 C 75 512 62 530 61 560 H 333 C 383 560 417 525 417 478 C 417 431 383 397 334 397 H 169 C 147 397 134 381 134 357 C 134 334 149 319 170 319 H 393 C 418 319 430 300 430 270 Z" />
+      <path fill="url(#i-azul)" d="M 551 270 L 523 539 Q 523 541 520 542 L 461 560 L 485 316 Q 485 312 489 309 Z" />
+      <path fill="#F3F8FD"
+        d="M 617 270 H 838 C 892 270 932 307 932 358 C 932 411 894 446 842 446 H 651 C 641 446 636 453 635 465 L 626 560 H 574 L 585 458 C 589 420 614 397 652 397 H 838 C 864 397 881 381 881 358 C 881 334 864 319 839 319 H 612 Z" />
+    </svg>
+    <p class="clock">Mazatlán <time id="clock">—</time></p>
+  </header>
+
+  <div class="copy">
+    <h1>Tu planta, en tiempo real</h1>
+    <p class="lede">Conectamos máquinas, sensores y sistemas para que cada paro se vea en el momento y
+      cada turno decida con datos.</p>
+    <a class="cta" href="#diagnostico">Agenda un diagnóstico de tu línea</a>
+  </div>
+
+  <div class="controls">
+    <p class="hint" id="hint">Mueve el cursor sobre la línea: dentro de la lente ves cada máquina como la
+      ve SIP.</p>
+    <button class="toggle" id="toggle" type="button" aria-pressed="false">Ver toda la línea como datos</button>
+  </div>
+</main>
+
+<script>
+  (() => {
+    const hero = document.getElementById("hero");
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("lens");
+    const labelsLayer = document.getElementById("labels");
+    const wires = document.getElementById("wires");
+    const toggle = document.getElementById("toggle");
+    const hint = document.getElementById("hint");
+    const media = hero.dataset.media;
+    const clipId = hero.dataset.clip;
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const coarse = matchMedia("(pointer: coarse)").matches;
+
+    // Hora real en Mazatlán: un dato, no un adorno.
+    const clock = document.getElementById("clock");
+    const hour = new Intl.DateTimeFormat("es-MX", {
+      timeZone: "America/Mazatlan",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    const tick = () => {
+      clock.textContent = hour.format(new Date());
+    };
+    tick();
+    setInterval(tick, 15000);
+
+    if (coarse) hint.textContent = "Arrastra la lente sobre la línea para ver cada máquina como la ve SIP.";
+
+    // ─── Lente WebGL2 ─────────────────────────────────────────────────────
+    const FPS = 30;
+    const LOOP = 12;
+    const LAYER_ASPECT = 16 / 9;
+    const SLANT = Math.tan((6 * Math.PI) / 180);
+
+    const gl = canvas.getContext("webgl2", { alpha: false, antialias: false, premultipliedAlpha: false });
+
+    const lens = { x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, reveal: 0, target: 0 };
+    let size = { w: 1, h: 1, dpr: 1 };
+    let pointerActive = false;
+    let lastPointer = 0;
+    let dragging = false;
+
+    function lensBox() {
+      const narrow = size.w < 720;
+      const w = narrow ? Math.max(120, size.w * 0.36) : Math.min(300, Math.max(170, size.w * 0.14));
+      const h = narrow ? size.h * 0.46 : size.h * 0.62;
+      const grow = easeInOut(lens.reveal);
+      return { w: w + (size.w * 3 - w) * grow, h: h + (size.h * 3 - h) * grow, cut: w * 0.34 };
+    }
+
+    function easeInOut(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+    }
+
+    /** Distancia firmada al borde de la lente (negativa adentro), en píxeles CSS. */
+    function lensDistance(px, py) {
+      const { w, h, cut } = lensBox();
+      const qx = px - lens.x;
+      const qy = py - lens.y;
+      const x = qx + qy * SLANT;
+      const top = -h / 2 - (x / w) * cut;
+      const bottom = h / 2 - (x / w) * cut * 0.5;
+      return Math.max(Math.abs(x) - w / 2, Math.max(top - qy, qy - bottom));
+    }
+
+    /** Escala para cubrir la pantalla con el cuadro 16:9 (igual que object-fit: cover). */
+    function coverScale() {
+      const aspect = size.w / size.h;
+      return aspect > LAYER_ASPECT ? [1, LAYER_ASPECT / aspect] : [aspect / LAYER_ASPECT, 1];
+    }
+
+    let program;
+    let uniforms = {};
+    let texture;
+    let textureReady = false;
+
+    if (gl) {
+      const vertex = `#version 300 es
+        in vec2 position;
+        void main() { gl_Position = vec4(position, 0.0, 1.0); }`;
+      const fragment = `#version 300 es
+        precision highp float;
+        uniform sampler2D layers;
+        uniform vec2 size;
+        uniform vec2 scale;
+        uniform vec2 center;
+        uniform vec3 box;
+        uniform float slant;
+        uniform float px;
+        uniform float guard;
+        uniform vec3 edge;
+        out vec4 outColor;
+        void main() {
+          vec2 p = vec2(gl_FragCoord.x, size.y - gl_FragCoord.y);
+          vec2 uv = clamp((p / size - 0.5) * scale + 0.5, 0.0, 1.0);
+          vec3 fisica = texture(layers, vec2(uv.x, min(uv.y * 0.5, 0.5 - guard))).rgb;
+          vec3 datos = texture(layers, vec2(uv.x, max(0.5 + uv.y * 0.5, 0.5 + guard))).rgb;
+          vec2 q = p - center;
+          float x = q.x + q.y * slant;
+          float top = -box.y * 0.5 - (x / box.x) * box.z;
+          float bottom = box.y * 0.5 - (x / box.x) * box.z * 0.5;
+          float d = max(abs(x) - box.x * 0.5, max(top - q.y, q.y - bottom));
+          float inside = clamp(0.5 - d / px, 0.0, 1.0);
+          float line = clamp(1.0 - abs(d) / (1.2 * px), 0.0, 1.0);
+          vec3 color = mix(fisica, datos, inside);
+          outColor = vec4(mix(color, edge, line * 0.9), 1.0);
+        }`;
+      const compile = (type, source) => {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader));
+        return shader;
+      };
+      try {
+        program = gl.createProgram();
+        gl.attachShader(program, compile(gl.VERTEX_SHADER, vertex));
+        gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fragment));
+        gl.linkProgram(program);
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program));
+        gl.useProgram(program);
+        for (const name of ["layers", "size", "scale", "center", "box", "slant", "px", "guard", "edge"]) {
+          uniforms[name] = gl.getUniformLocation(program, name);
+        }
+        const buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+        const position = gl.getAttribLocation(program, "position");
+        gl.enableVertexAttribArray(position);
+        gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+        texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.uniform1i(uniforms.layers, 0);
+        gl.uniform1f(uniforms.slant, SLANT);
+        gl.uniform3f(uniforms.edge, 1 / 255, 137 / 255, 245 / 255);
+      } catch (error) {
+        console.warn("Lente sin WebGL2:", error);
+        program = undefined;
+      }
+    }
+
+    function resize() {
+      const rect = hero.getBoundingClientRect();
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      size = { w: rect.width, h: rect.height, dpr };
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      if (!pointerActive) restPosition(performance.now());
+    }
+
+    /** Sin cursor, la lente barre la línea sola, de ida y vuelta, a paso de máquina. */
+    function restPosition(now) {
+      const narrow = size.w < 720;
+      const phase = (now / 1000 / 9) * Math.PI * 2;
+      const from = narrow ? 0.3 : 0.44;
+      const to = narrow ? 0.72 : 0.86;
+      lens.tx = size.w * (from + ((to - from) * (1 - Math.cos(phase))) / 2);
+      lens.ty = size.h * (narrow ? 0.4 : 0.47);
+    }
+
+    // ─── Anclas y etiquetas ───────────────────────────────────────────────
+    let anchors = null;
+    let events = [];
+    const MACHINES = {
+      "pnp-1": "Pick-and-place 1",
+      "pnp-2": "Pick-and-place 2",
+      aoi: "Inspección óptica",
+      horno: "Horno de reflujo",
+    };
+    const number = new Intl.NumberFormat("es-MX", { maximumFractionDigits: 1 });
+    const pool = [];
+    const MAX_LABELS = 3;
+    for (let i = 0; i < MAX_LABELS; i++) {
+      const label = document.createElement("div");
+      label.className = "label";
+      label.hidden = true;
+      label.innerHTML = '<span class="name"></span><span class="reading"><span class="state"></span><span class="value"></span></span>';
+      labelsLayer.append(label);
+      const wire = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      dot.setAttribute("r", "2.5");
+      wires.append(wire, dot);
+      pool.push({ label, wire, dot, id: null });
+    }
+
+    fetch(`${media}${clipId}.anclas.json`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (!data) return;
+        anchors = data.anclas;
+        events = data.eventos ?? [];
+      })
+      .catch(() => undefined);
+
+    function hash(text) {
+      let h = 2166136261;
+      for (const char of text) h = Math.imul(h ^ char.charCodeAt(0), 16777619);
+      return (h >>> 0) / 4294967296;
+    }
+
+    /** Lectura simulada de cada máquina: cambia una vez por segundo, como un dato real. */
+    function reading(id, kind, second) {
+      const seed = hash(id);
+      const wobble = Math.sin(second * 0.9 + seed * 40) * 0.5 + Math.sin(second * 0.37 + seed * 17) * 0.5;
+      if (kind === "pnp-1" || kind === "pnp-2") return `${number.format(Math.round(29800 + seed * 3200 + wobble * 260))} cph`;
+      if (kind === "aoi") return `${number.format(99 + seed * 0.7 + wobble * 0.1)} % sin defectos`;
+      return `pico ${number.format(Math.round(243 + seed * 4 + wobble * 1.4))} °C`;
+    }
+
+    let loops = 0;
+    let lastTime = 0;
+
+    function updateLabels(mediaTime) {
+      const t = mediaTime % LOOP;
+      if (t + 1 < lastTime) loops++;
+      lastTime = t;
+      const frame = Math.min(Math.round(t * FPS), LOOP * FPS - 1);
+      const [sx, sy] = coverScale();
+      const candidates = [];
+      if (anchors && lens.reveal < 0.02) {
+        for (const [id, track] of Object.entries(anchors)) {
+          const at = track[frame];
+          if (!at || at[2] > 17) continue;
+          const x = ((at[0] - 0.5) / sx + 0.5) * size.w;
+          const y = ((at[1] - 0.5) / sy + 0.5) * size.h;
+          if (x < 0 || x > size.w || y < 60 || y > size.h) continue;
+          if (lensDistance(x, y) > -6) continue;
+          candidates.push({ id, x, y, distance: at[2] });
+        }
+      }
+      // La alerta primero; después, lo más cercano.
+      const alertAt = (id) => events.some((e) => e.ancla === id && t >= e.desde && t < e.hasta);
+      candidates.sort((a, b) => Number(alertAt(b.id)) - Number(alertAt(a.id)) || a.distance - b.distance);
+      const shown = candidates.slice(0, MAX_LABELS);
+      const second = Math.floor(mediaTime);
+      const placed = [];
+
+      pool.forEach((slot, index) => {
+        const item = shown[index];
+        if (!item) {
+          slot.label.hidden = true;
+          slot.wire.style.opacity = "0";
+          slot.dot.style.opacity = "0";
+          return;
+        }
+        const kind = item.id.split("/")[2];
+        const alert = alertAt(item.id);
+        slot.label.dataset.estado = alert ? "alerta" : "operando";
+        slot.label.querySelector(".name").textContent = MACHINES[kind] ?? kind;
+        slot.label.querySelector(".state").textContent = alert ? "Alerta" : "Operando";
+        slot.label.querySelector(".value").textContent = alert
+          ? "alimentador 14 sin componente"
+          : reading(`${item.id}/${loops}`, kind, second);
+        slot.label.hidden = false;
+
+        // Trazo del logo: sube desde la torreta y gira 90° con esquina redondeada hacia el dato.
+        const width = slot.label.offsetWidth;
+        const height = slot.label.offsetHeight;
+        const radius = 7;
+        const run = 16;
+        const right = item.x + radius + run + width <= size.w - 16;
+        const box = {
+          x: right ? item.x + radius + run : item.x - radius - run - width,
+          y: item.y - 40 - height / 2,
+          w: width,
+          h: height,
+        };
+        // Sin encimarse: si choca con una etiqueta ya puesta, sube por encima de ella.
+        for (let pass = 0; pass < 3; pass++) {
+          for (const other of placed) {
+            const overlaps =
+              box.x < other.x + other.w + 8 && other.x < box.x + box.w + 8 && box.y < other.y + other.h + 6 && other.y < box.y + box.h + 6;
+            if (overlaps) box.y = other.y - box.h - 8;
+          }
+        }
+        box.y = Math.max(64, box.y);
+        placed.push(box);
+        slot.label.style.transform = `translate(${box.x}px, ${box.y}px)`;
+        const mid = box.y + box.h / 2;
+        const turn = right ? radius : -radius;
+        const end = right ? box.x : box.x + box.w;
+        slot.wire.setAttribute("d", `M ${item.x} ${item.y} V ${mid + radius} Q ${item.x} ${mid} ${item.x + turn} ${mid} H ${end}`);
+        slot.wire.setAttribute("class", alert ? "alerta" : "");
+        slot.dot.setAttribute("class", alert ? "alerta" : "");
+        slot.dot.setAttribute("cx", String(item.x));
+        slot.dot.setAttribute("cy", String(item.y));
+        slot.wire.style.opacity = "1";
+        slot.dot.style.opacity = "1";
+      });
+    }
+
+    // ─── Bucle ────────────────────────────────────────────────────────────
+    let previous = performance.now();
+    let mediaTime = 0;
+    // Con requestVideoFrameCallback la textura se sube solo con cuadro nuevo y las etiquetas usan
+    // el instante exacto del cuadro que se ve.
+    let fresh = true;
+    const exact = "requestVideoFrameCallback" in video;
+    if (exact) {
+      const onVideoFrame = (_now, meta) => {
+        fresh = true;
+        mediaTime = meta.mediaTime;
+        video.requestVideoFrameCallback(onVideoFrame);
+      };
+      video.requestVideoFrameCallback(onVideoFrame);
+    }
+
+    function frame(now) {
+      const dt = Math.min(0.05, (now - previous) / 1000);
+      previous = now;
+      if (!pointerActive && !dragging && !reduceMotion) restPosition(now);
+      if (pointerActive && now - lastPointer > 4000 && !dragging) pointerActive = false;
+      // Resorte críticamente amortiguado: la lente llega firme, sin rebote.
+      const stiffness = 90;
+      const damping = 2 * Math.sqrt(stiffness);
+      lens.vx += (stiffness * (lens.tx - lens.x) - damping * lens.vx) * dt;
+      lens.vy += (stiffness * (lens.ty - lens.y) - damping * lens.vy) * dt;
+      lens.x += lens.vx * dt;
+      lens.y += lens.vy * dt;
+      lens.reveal += (lens.target - lens.reveal) * Math.min(1, dt * (reduceMotion ? 60 : 3.2));
+
+      if (!exact && video.readyState >= 2) mediaTime = video.currentTime;
+      if (program && video.readyState >= 2) {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        if (fresh || !exact || !textureReady) {
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+          fresh = false;
+        }
+        textureReady = true;
+        const { w, h, cut } = lensBox();
+        const d = size.dpr;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.uniform2f(uniforms.size, canvas.width, canvas.height);
+        gl.uniform2f(uniforms.scale, ...coverScale());
+        gl.uniform2f(uniforms.center, lens.x * d, lens.y * d);
+        gl.uniform3f(uniforms.box, w * d, h * d, cut * d);
+        gl.uniform1f(uniforms.px, d);
+        gl.uniform1f(uniforms.guard, 1 / (video.videoHeight || 2160));
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        if (hero.dataset.estado !== "lente") hero.dataset.estado = "lente";
+      }
+      if (textureReady) updateLabels(mediaTime);
+      requestAnimationFrame(frame);
+    }
+
+    // ─── Entrada ──────────────────────────────────────────────────────────
+    function point(event) {
+      const rect = hero.getBoundingClientRect();
+      lens.tx = event.clientX - rect.left;
+      lens.ty = event.clientY - rect.top;
+      pointerActive = true;
+      lastPointer = performance.now();
+    }
+
+    hero.addEventListener("pointermove", (event) => {
+      if (event.pointerType === "mouse" || dragging) point(event);
+    });
+    hero.addEventListener("pointerleave", (event) => {
+      if (event.pointerType === "mouse") pointerActive = false;
+    });
+    hero.addEventListener("pointerdown", (event) => {
+      if (event.pointerType === "mouse" || event.target.closest("a, button")) return;
+      dragging = true;
+      point(event);
+    });
+    for (const type of ["pointerup", "pointercancel"]) {
+      hero.addEventListener(type, () => {
+        dragging = false;
+        lastPointer = performance.now();
+      });
+    }
+    hero.addEventListener("keydown", (event) => {
+      const step = Math.max(24, size.w * 0.04);
+      const moves = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+      const move = moves[event.key];
+      if (!move) return;
+      event.preventDefault();
+      lens.tx = Math.min(size.w, Math.max(0, lens.tx + move[0]));
+      lens.ty = Math.min(size.h, Math.max(0, lens.ty + move[1]));
+      pointerActive = true;
+      lastPointer = performance.now() + 60000;
+    });
+
+    toggle.addEventListener("click", () => {
+      const on = toggle.getAttribute("aria-pressed") !== "true";
+      toggle.setAttribute("aria-pressed", String(on));
+      toggle.textContent = on ? "Volver a la lente" : "Ver toda la línea como datos";
+      lens.target = on ? 1 : 0;
+    });
+
+    window.addEventListener("resize", resize);
+    resize();
+    lens.x = lens.tx;
+    lens.y = lens.ty;
+
+    video.addEventListener("playing", () => {
+      if (!program) hero.dataset.estado = "video";
+    });
+
+    if (reduceMotion) {
+      // Movimiento reducido: un cuadro fijo con la alerta visible y la lente sobre la máquina.
+      video.addEventListener(
+        "loadeddata",
+        () => {
+          video.currentTime = 6;
+        },
+        { once: true },
+      );
+      lens.tx = size.w * 0.47;
+      lens.ty = size.h * 0.45;
+      lens.x = lens.tx;
+      lens.y = lens.ty;
+      pointerActive = true;
+      lastPointer = Number.POSITIVE_INFINITY;
+    } else {
+      video.play().catch(() => {
+        // Sin autoplay (ahorro de energía): el primer toque lo inicia.
+        hero.addEventListener("pointerdown", () => video.play().catch(() => undefined), { once: true });
+      });
+    }
+    if (!program) hero.dataset.estado = "poster";
+    requestAnimationFrame(frame);
+  })();
+</script>
+</body>
+</html>

@@ -78,6 +78,14 @@ Las etiquetas no se hornean en el video: el sitio las dibuja sobre las anclas, e
 visitante y con los valores del simulador. Al cerrar el loop la cámara avanzó un módulo, así que
 el ancla del módulo k en el último cuadro continúa como la del módulo k − 1 en el cuadro 0.
 
+## Prototipo de la lente
+
+`prototipo/lente.html` es el hero de una sola pantalla con la lente real: WebGL2 sobre el video
+apilado, la I del logo inclinada 6° como ventana (sigue al cursor; en táctil barre sola y se
+arrastra), las etiquetas sobre las anclas y el titular abajo a la izquierda. Es la referencia para
+la integración en el sitio. Para verlo, sirve la raíz del repo (`npx http-server .`) y abre
+`/prototipo/lente.html`.
+
 ## Cómo funciona el render
 
 - **Acumulación.** Cada cuadro promedia 48 subcuadros. Cada uno mueve la cámara dentro del píxel
