@@ -4,22 +4,25 @@ import { createWorld } from "./worlds";
 
 /**
  * Estudio de video: monta la toma pedida en `?clip=` y expone `window.film.frame(i)`.
- * `?samples=` baja los subcuadros para pruebas rápidas.
+ * Para pruebas rápidas: `?samples=` baja los subcuadros y `?scale=` la resolución.
  */
 function start(): void {
   const params = new URLSearchParams(location.search);
   const clip = parseClip(params.get("clip") ?? "manufactura-noche-h");
   const samples = Number(params.get("samples") ?? clip.samples);
+  const scale = Number(params.get("scale") ?? 1);
+  const width = Math.round(clip.width * scale);
+  const height = Math.round(clip.height * scale);
   const canvas = document.querySelector<HTMLCanvasElement>("#film");
   if (!canvas) throw new Error("Falta el canvas #film");
 
-  const renderer = new FilmRenderer(canvas, clip.width, clip.height);
+  const renderer = new FilmRenderer(canvas, width, height);
   const world = createWorld(clip.industry, renderer.gl, {
     light: clip.light,
     framing: clip.framing,
     duration: clip.duration,
-    width: clip.width,
-    height: clip.height,
+    width,
+    height,
   });
 
   const frames = Math.round(clip.duration * clip.fps);
