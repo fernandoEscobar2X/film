@@ -301,7 +301,7 @@ async function openStudio(clip, quality = {}) {
       return page.evaluate((i) => {
         const film = window.film;
         if (!film) throw new Error("El estudio no está listo");
-        return { anchors: film.anchors(i), events: film.events };
+        return { anchors: film.anchors(i), events: film.events, fov: film.fov };
       }, index);
     },
     async close() {
@@ -625,8 +625,11 @@ async function preview(clip, options) {
 }
 
 /**
- * Capas apiladas (física arriba, datos abajo) en un solo video: el sitio las decodifica juntas,
- * alineadas al píxel y al cuadro, y la lente WebGL las mezcla. Sin WebGL se muestra la mitad física.
+ * Capas apiladas en un solo video: el sitio las decodifica juntas, alineadas al píxel y al cuadro,
+ * y la lente WebGL las mezcla. Sin WebGL se muestra la mitad física. Se apilan por el lado corto de
+ * la toma (h: física arriba y datos abajo, 1920 × 2160; v: física a la izquierda y datos a la
+ * derecha, 2160 × 1920): el video queda casi cuadrado y dentro de los límites de los decodificadores
+ * 4K de los teléfonos, que no aceptan 3840 px de alto.
  * @param {Clip} clip
  */
 async function encode(clip) {
@@ -635,7 +638,8 @@ async function encode(clip) {
   const fisica = join(framesDir(clip, "fisica"), "%04d.png");
   const datos = join(framesDir(clip, "datos"), "%04d.png");
   const inputs = ["-framerate", String(clip.fps), "-i", fisica, "-framerate", String(clip.fps), "-i", datos];
-  const stack = ["-filter_complex", "[0:v][1:v]vstack=inputs=2[apiladas]", "-map", "[apiladas]"];
+  const direction = clip.framing === "h" ? "vstack" : "hstack";
+  const stack = ["-filter_complex", `[0:v][1:v]${direction}=inputs=2[apiladas]`, "-map", "[apiladas]"];
   // Un cuadro clave cada 2 s: el loop siempre arranca en uno y el archivo pesa menos.
   const gop = ["-g", String(clip.fps * 2), "-an"];
 
@@ -690,7 +694,15 @@ async function anchors(clip) {
         id,
         frames.map(({ anchors: list }) => {
           const anchor = list.find((a) => a.id === id);
-          return anchor?.visible ? [round(anchor.x, 4), round(anchor.y, 4), round(anchor.distance, 1)] : null;
+          return anchor?.visible
+            ? [
+                round(anchor.x, 4),
+                round(anchor.y, 4),
+                round(anchor.distance, 1),
+                round(anchor.bodyX, 4),
+                round(anchor.bodyY, 4),
+              ]
+            : null;
         }),
       ]),
     );
@@ -701,7 +713,9 @@ async function anchors(clip) {
       fps: clip.fps,
       cuadros: total,
       formato:
-        "anclas[id][cuadro] = [x, y, distancia en m] con x e y en 0–1 desde arriba a la izquierda; null si no se ve",
+        "anclas[id][cuadro] = [x, y, distancia en m, xCuerpo, yCuerpo] en 0–1 desde arriba a la izquierda: (x, y) es la torreta, donde se engancha la etiqueta, y (xCuerpo, yCuerpo) el centro de la máquina; null si no se ve",
+      // Con el campo de visión, el sitio estima cuánto mide en pantalla algo a cierta distancia.
+      fovVertical: frames[0]?.fov,
       alCerrarElLoop:
         "el ancla del módulo k en el último cuadro continúa como la del módulo k − 1 en el cuadro 0",
       eventos: events.map((event) => ({

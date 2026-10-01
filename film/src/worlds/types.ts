@@ -71,7 +71,10 @@ export interface Anchor {
   /** Estable dentro del loop, p. ej. `a/m1/pnp-2` (línea / módulo / máquina). */
   readonly id: string;
   readonly kind: "maquina";
+  /** Donde se engancha la etiqueta: la torreta, la luz de estado de la máquina. */
   readonly position: Vector3;
+  /** Centro del cuerpo de la máquina: con él se sabe si la máquina se ve (en la lente, en cuadro). */
+  readonly body: Vector3;
 }
 
 /** Evento del guion que el sitio debe reflejar en sus etiquetas, en segundos del loop. */

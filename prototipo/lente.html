@@ -86,7 +86,10 @@
     transition: opacity 0.4s linear;
   }
 
-  /* El video apila física arriba y datos abajo: sin WebGL se muestra solo la mitad física. */
+  /*
+   * El video apila las capas por el lado corto de la toma: en horizontal, física arriba y datos
+   * abajo; en vertical, física a la izquierda y datos a la derecha. Sin WebGL se ve solo la física.
+   */
   .plate video {
     position: absolute;
     left: 0;
@@ -94,6 +97,11 @@
     width: 100%;
     height: 200%;
     object-fit: cover;
+  }
+
+  .plate[data-apilado="lado"] video {
+    width: 200%;
+    height: 100%;
   }
 
   .lens {
@@ -391,8 +399,10 @@
 <body>
 
 <main class="hero" id="hero" data-estado="poster" data-media="../public/media/hero/" data-clip="manufactura-noche-h"
-  data-clip-vertical="">
+  data-clip-vertical="manufactura-noche-v">
   <picture>
+    <source media="(orientation: portrait)" srcset="../public/media/hero/manufactura-noche-v.avif" type="image/avif">
+    <source media="(orientation: portrait)" srcset="../public/media/hero/manufactura-noche-v.webp" type="image/webp">
     <source srcset="../public/media/hero/manufactura-noche-h.avif" type="image/avif">
     <img class="poster" src="../public/media/hero/manufactura-noche-h.webp" alt="" fetchpriority="high">
   </picture>
@@ -487,6 +497,9 @@
     const FPS = 30;
     const LOOP = 12;
     const LAYER_ASPECT = clipId.endsWith("-v") ? 9 / 16 : 16 / 9;
+    // Tomas verticales: capas lado a lado (el video queda de 2160 × 1920, no de 1080 × 3840).
+    const SIDE_BY_SIDE = LAYER_ASPECT < 1;
+    if (SIDE_BY_SIDE) video.parentElement.dataset.apilado = "lado";
     const SLANT = Math.tan((6 * Math.PI) / 180);
 
     const gl = canvas.getContext("webgl2", { alpha: false, antialias: false, premultipliedAlpha: false });
@@ -545,13 +558,16 @@
         uniform float slant;
         uniform float px;
         uniform float guard;
+        uniform bool sideBySide;
         uniform vec3 edge;
         out vec4 outColor;
         void main() {
           vec2 p = vec2(gl_FragCoord.x, size.y - gl_FragCoord.y);
           vec2 uv = clamp((p / size - 0.5) * scale + 0.5, 0.0, 1.0);
-          vec3 fisica = texture(layers, vec2(uv.x, min(uv.y * 0.5, 0.5 - guard))).rgb;
-          vec3 datos = texture(layers, vec2(uv.x, max(0.5 + uv.y * 0.5, 0.5 + guard))).rgb;
+          vec2 fisicaUv = sideBySide ? vec2(min(uv.x * 0.5, 0.5 - guard), uv.y) : vec2(uv.x, min(uv.y * 0.5, 0.5 - guard));
+          vec2 datosUv = sideBySide ? vec2(max(0.5 + uv.x * 0.5, 0.5 + guard), uv.y) : vec2(uv.x, max(0.5 + uv.y * 0.5, 0.5 + guard));
+          vec3 fisica = texture(layers, fisicaUv).rgb;
+          vec3 datos = texture(layers, datosUv).rgb;
           vec2 q = p - center;
           float x = q.x + q.y * slant;
           float top = -box.y * 0.5 - (x / box.x) * box.z;
@@ -576,7 +592,7 @@
         gl.linkProgram(program);
         if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program));
         gl.useProgram(program);
-        for (const name of ["layers", "size", "scale", "center", "box", "slant", "px", "guard", "edge"]) {
+        for (const name of ["layers", "size", "scale", "center", "box", "slant", "px", "guard", "sideBySide", "edge"]) {
           uniforms[name] = gl.getUniformLocation(program, name);
         }
         const buffer = gl.createBuffer();
@@ -685,7 +701,10 @@
           const x = ((at[0] - 0.5) / sx + 0.5) * size.w;
           const y = ((at[1] - 0.5) / sy + 0.5) * size.h;
           if (x < 0 || x > size.w || y < 60 || y > size.h) continue;
-          if (lensDistance(x, y) > -6) continue;
+          // La etiqueta se engancha en la torreta, pero la máquina cuenta si su cuerpo está en la lente.
+          const bodyX = ((at[3] - 0.5) / sx + 0.5) * size.w;
+          const bodyY = ((at[4] - 0.5) / sy + 0.5) * size.h;
+          if (lensDistance(bodyX, bodyY) > 20 && lensDistance(x, y) > 16) continue;
           candidates.push({ id, x, y, distance: at[2] });
         }
       }
@@ -719,13 +738,15 @@
         const height = slot.label.offsetHeight;
         const radius = 7;
         const run = 16;
-        const right = item.x + radius + run + width <= size.w - 16;
+        // Del lado con espacio, sin salirse de la pantalla.
+        const right = item.x + radius + run + width <= size.w - 16 || item.x - radius - run - width < 16;
         const box = {
           x: right ? item.x + radius + run : item.x - radius - run - width,
           y: item.y - 40 - height / 2,
           w: width,
           h: height,
         };
+        box.x = Math.min(Math.max(box.x, 16), size.w - 16 - box.w);
         // Sin encimarse: si choca con una etiqueta ya puesta, sube por encima de ella.
         for (let pass = 0; pass < 3; pass++) {
           for (const other of placed) {
@@ -734,7 +755,8 @@
             if (overlaps) box.y = other.y - box.h - 8;
           }
         }
-        box.y = Math.max(64, box.y);
+        // Debajo de la barra superior (en móvil también queda abajo del botón de la capa de datos).
+        box.y = Math.max(size.w < 720 ? 104 : 64, box.y);
         placed.push(box);
         slot.label.style.transform = `translate(${box.x}px, ${box.y}px)`;
         const mid = box.y + box.h / 2;
@@ -796,7 +818,8 @@
         gl.uniform2f(uniforms.center, lens.x * d, lens.y * d);
         gl.uniform3f(uniforms.box, w * d, h * d, cut * d);
         gl.uniform1f(uniforms.px, d);
-        gl.uniform1f(uniforms.guard, 1 / (video.videoHeight || 2160));
+        gl.uniform1f(uniforms.guard, 1 / ((SIDE_BY_SIDE ? video.videoWidth : video.videoHeight) || 2160));
+        gl.uniform1i(uniforms.sideBySide, SIDE_BY_SIDE ? 1 : 0);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
         if (hero.dataset.estado !== "lente") hero.dataset.estado = "lente";
       }

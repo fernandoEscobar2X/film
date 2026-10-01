@@ -245,7 +245,14 @@ export function createManufactura(gl: WebGLRenderer, options: WorldOptions): Fil
     else data.beforeRender(renderer, camera, sample);
   }
 
-  // Anclas sobre la torreta de cada máquina: ahí el sitio pone nombre, estado y lecturas.
+  // Anclas sobre la torreta de cada máquina: ahí el sitio pone nombre, estado y lecturas. El
+  // cuerpo es el centro del volumen de la máquina ([pnp, carro, pnp, carro, aoi, horno]).
+  const bodies = [0, 2, 4, 5].map((index) => {
+    const envelope = line.envelopes[index];
+    if (!envelope) throw new Error(`Falta el volumen ${index} de la línea`);
+    const [x, y, z] = envelope.base;
+    return new Vector3(x, y + envelope.size[1] / 2, z);
+  });
   const anchors: Anchor[] = placements.flatMap((placement) =>
     line.towers.map(([x, y, z], tower) => ({
       id: `${LINE_IDS[placement.line]}/m${placement.module}/${MACHINE_IDS[tower]}`,
@@ -253,6 +260,7 @@ export function createManufactura(gl: WebGLRenderer, options: WorldOptions): Fil
       position: new Vector3(x, y + TOWER_SEGMENT.base + 4 * TOWER_SEGMENT.height + 0.06, z).applyMatrix4(
         placement.matrix,
       ),
+      body: (bodies[tower] ?? new Vector3()).clone().applyMatrix4(placement.matrix),
     })),
   );
   const alertId = `${LINE_IDS[ALERT.line]}/m1/${MACHINE_IDS[ALERT.tower]}`;

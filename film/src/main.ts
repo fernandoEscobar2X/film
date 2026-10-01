@@ -37,6 +37,7 @@ function start(): void {
     clip,
     frames,
     events: world.events ?? [],
+    fov: world.pose(0).fov,
     anchors(index) {
       // La misma cámara que el render, sin los desplazamientos de subcuadro.
       const pose = world.pose(index / clip.fps);
@@ -46,11 +47,23 @@ function start(): void {
       Object.assign(lens, { fov: pose.fov, aspect: clip.width / clip.height, near: 0.05, far: 400 });
       lens.updateProjectionMatrix();
       lens.updateMatrixWorld();
-      return (world.anchors ?? []).map(({ id, kind, position }) => {
+      return (world.anchors ?? []).map(({ id, kind, position, body }) => {
         const distance = position.distanceTo(pose.position);
         const ndc = position.clone().project(lens);
-        const visible = ndc.z < 1 && Math.abs(ndc.x) <= 1 && Math.abs(ndc.y) <= 1 && distance <= ANCHOR_RANGE;
-        return { id, kind, x: (ndc.x + 1) / 2, y: (1 - ndc.y) / 2, distance, visible };
+        const center = body.clone().project(lens);
+        // Se ve si el cuerpo de la máquina está en cuadro (la torreta puede quedar justo afuera).
+        const visible =
+          center.z < 1 && Math.abs(center.x) <= 1 && Math.abs(center.y) <= 1 && distance <= ANCHOR_RANGE;
+        return {
+          id,
+          kind,
+          x: (ndc.x + 1) / 2,
+          y: (1 - ndc.y) / 2,
+          bodyX: (center.x + 1) / 2,
+          bodyY: (1 - center.y) / 2,
+          distance,
+          visible,
+        };
       });
     },
     async frame(index, layer) {
