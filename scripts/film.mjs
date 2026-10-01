@@ -659,7 +659,7 @@ async function encode(clip) {
   const avif = join(HERO_DIR, `${clip.id}.avif`);
   await run("ffmpeg", [
     ...["-hide_banner", "-y", "-i", first, "-c:v", "libaom-av1", "-still-picture", "1"],
-    ...["-crf", "26", "-b:v", "0", "-pix_fmt", "yuv420p10le", "-cpu-used", "4", avif],
+    ...["-crf", "18", "-b:v", "0", "-pix_fmt", "yuv420p10le", "-cpu-used", "4", avif],
   ]);
   const webp = join(HERO_DIR, `${clip.id}.webp`);
   await run("ffmpeg", ["-hide_banner", "-y", "-i", first, "-c:v", "libwebp", "-quality", "82", webp]);
