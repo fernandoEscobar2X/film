@@ -341,23 +341,36 @@
     white-space: nowrap;
   }
 
-  /* Móvil: el titular ocupa el 40 % inferior, la lente barre sola y se arrastra con el dedo. */
+  /*
+   * Móvil: el titular ocupa el 40 % inferior; el botón de la capa de datos sube junto a la hora.
+   * La lente barre sola y se arrastra con el dedo.
+   */
   @media (max-width: 720px) {
     .copy {
       max-width: 100%;
-      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
       gap: 12px;
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
     }
 
     h1 {
       font-variation-settings: "wdth" 100;
-      font-size: clamp(2.2rem, 11vw, 3.4rem);
+      font-size: clamp(2rem, 9.6vw, 3rem);
+    }
+
+    .lede {
+      font-size: 0.95rem;
+      line-height: 1.45;
     }
 
     .controls {
-      left: 0;
-      justify-items: start;
-      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+      top: calc(env(safe-area-inset-top, 0px) + 62px);
+      bottom: auto;
+      padding: 0 var(--gutter);
+    }
+
+    .toggle {
+      font-size: 13px;
+      padding: 7px 11px;
     }
 
     .hint {
