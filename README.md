@@ -36,7 +36,7 @@ Todas las tomas siguen el patrón `<industria>-<noche|dia>-<h|v>` (h = 16:9, v =
 | `… render <toma> --samples=8 --scale=0.5` | Prueba rápida; va a `pruebas/` y no se mezcla con el render final |
 | `npm run film -- loop <toma>` | Verifica el cierre del loop: cuadro 0 contra el siguiente al último (PSNR ≥ 45 dB) |
 | `npm run film -- sheet <toma>` | Hoja de contacto, un cuadro por segundo |
-| `npm run film -- preview <toma>` | Vista previa de la lente: el corte de la I a 6° barre el cuadro y revela los datos |
+| `npm run film -- preview <toma>` | Vista previa de la lente: la I a 6° recorre la línea, llega a la máquina cuando el guion dispara la alerta y la acompaña |
 | `npm run film -- encode <toma>` | Video final con las capas apiladas y póster |
 | `npm run film -- anchors <toma>` | Posición en pantalla de cada máquina por cuadro, para las etiquetas de la lente |
 

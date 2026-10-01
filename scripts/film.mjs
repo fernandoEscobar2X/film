@@ -5,7 +5,7 @@
  *   render  <toma> [--layer=fisica|datos] [--frames=0-359] [--samples=N] [--scale=S] [--force]
  *   loop    <toma>                 Verifica que el cuadro siguiente al último sea el cuadro 0 (PSNR).
  *   sheet   <toma> [--layer=...]   Hoja de contacto (un cuadro por segundo).
- *   preview <toma>                 El corte de la I a 6° barre el cuadro y revela la capa de datos.
+ *   preview <toma>                 La lente (la I a 6°) recorre la línea y acompaña la alerta del guion.
  *   encode  <toma>                 Capas apiladas en AV1 (WebM) y H.264 (MP4) + póster AVIF/WebP.
  *   anchors <toma>                 Posición en pantalla de cada máquina por cuadro (JSON).
  *
@@ -15,7 +15,16 @@
  */
 
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseClip } from "../film/src/clips.ts";
@@ -439,25 +448,87 @@ async function sheet(clip, options) {
 }
 
 /**
- * Máscara del corte: una franja con los lados inclinados 6° como la I del logo (arriba hacia la
- * derecha) que barre el cuadro de ida y vuelta en un loop. Expresión para `geq` de ffmpeg.
- * @param {Clip} clip
- * @param {"franja" | "borde"} kind
+ * Forma de la lente, la misma del sitio: la I del logo inclinada 6° (arriba hacia la derecha), con
+ * los extremos cortados en diagonal. En píxeles del cuadro.
+ * @param {number} width
+ * @param {number} height
+ * @param {"h" | "v"} framing
  */
-function cutMask(clip, kind) {
-  const slant = Math.tan((6 * Math.PI) / 180).toFixed(5);
-  const band = clip.framing === "h" ? 0.2 : 0.36;
-  // Centro de la franja: sale por la izquierda, cruza y sale por la derecha; vuelve en el otro medio loop.
-  const center = `(W/2-(W/2+W*${band})*cos(2*PI*T/${clip.duration}))`;
-  const distance = `abs(X-${center}-(H/2-Y)*${slant})`;
-  const half = `(W*${band}/2)`;
-  return kind === "franja"
-    ? `255*clip(0.5+(${half}-${distance})/1.2,0,1)`
-    : `255*clip(1.2-abs(${distance}-${half})/1.1,0,1)`;
+export function lensShape(width, height, framing) {
+  const w = framing === "h" ? width * 0.14 : width * 0.36;
+  return {
+    w,
+    h: framing === "h" ? height * 0.62 : height * 0.46,
+    cut: w * 0.34,
+    slant: Math.tan((6 * Math.PI) / 180),
+  };
+}
+
+/** @param {number} a @param {number} b @param {number} x */
+function smoothstep(a, b, x) {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
 }
 
 /**
- * Vista previa de la lente: la capa de datos aparece dentro del corte de la I.
+ * Recorrido de la lente en el loop, como lo haría alguien explorando: descansa sobre la línea y,
+ * cuando el guion dispara la alerta, llega a esa máquina, la acompaña mientras dura y vuelve.
+ * Termina donde empieza, así la vista previa también cierra el loop. Centro en 0–1.
+ * @param {number} t Segundos dentro del loop.
+ * @param {Clip} clip
+ * @param {{ from: number, to: number, at: (t: number) => readonly number[] | null } | undefined} alert
+ * @returns {[number, number]}
+ */
+export function lensPath(t, clip, alert) {
+  const [homeX, homeY] = clip.framing === "h" ? [0.7, 0.47] : [0.55, 0.42];
+  const drift = 0.1 * Math.sin((2 * Math.PI * t) / clip.duration);
+  /** @type {[number, number]} */
+  const rest = [homeX + drift, homeY];
+  const target = alert?.at(t);
+  if (!alert || !target) return rest;
+  const weight =
+    smoothstep(alert.from - 1.4, alert.from - 0.1, t) * (1 - smoothstep(alert.to + 0.3, alert.to + 1.7, t));
+  // La línea central de la lente (inclinada) pasa por el ancla, la torreta de la máquina.
+  const { slant } = lensShape(clip.width, clip.height, clip.framing);
+  const lift = ((rest[1] - (target[1] ?? rest[1])) * clip.height * slant) / clip.width;
+  const x = (target[0] ?? rest[0]) - lift;
+  return [rest[0] + (x - rest[0]) * weight, rest[1]];
+}
+
+/**
+ * Máscaras de un cuadro en un solo búfer gris del doble de alto: arriba lo que queda dentro de la
+ * lente, abajo su borde (1 px con antialias). Solo se recorre la caja de la lente.
+ * @param {Clip} clip
+ * @param {readonly [number, number]} center Centro en 0–1.
+ * @param {Buffer} out
+ */
+function lensMasks(clip, center, out) {
+  const { width, height } = clip;
+  const { w, h, cut, slant } = lensShape(width, height, clip.framing);
+  out.fill(0);
+  const cx = center[0] * width;
+  const cy = center[1] * height;
+  const reach = w / 2 + (h / 2) * slant + cut + 3;
+  const top = Math.max(0, Math.floor(cy - h / 2 - cut - 3));
+  const bottom = Math.min(height, Math.ceil(cy + h / 2 + cut + 3));
+  for (let y = top; y < bottom; y++) {
+    const qy = y + 0.5 - cy;
+    const from = Math.max(0, Math.floor(cx - reach));
+    const to = Math.min(width, Math.ceil(cx + reach));
+    for (let x = from; x < to; x++) {
+      const along = x + 0.5 - cx + qy * slant;
+      const upper = -h / 2 - (along / w) * cut;
+      const lower = h / 2 - (along / w) * cut * 0.5;
+      const d = Math.max(Math.abs(along) - w / 2, Math.max(upper - qy, qy - lower));
+      out[y * width + x] = Math.round(255 * Math.min(1, Math.max(0, 0.5 - d)));
+      out[(height + y) * width + x] = Math.round(229 * Math.min(1, Math.max(0, 1 - Math.abs(d) / 1.2)));
+    }
+  }
+}
+
+/**
+ * Vista previa de la lente: la capa de datos dentro de la I, con el recorrido de `lensPath`. Las
+ * máscaras se calculan aquí y entran a ffmpeg por la entrada estándar.
  * @param {Clip} clip
  * @param {Options} options
  */
@@ -467,26 +538,89 @@ async function preview(clip, options) {
   const fisica = join(framesDir(clip, "fisica", variant), "%04d.png");
   const datos = join(framesDir(clip, "datos", variant), "%04d.png");
   const out = join(clipDir(clip), variant ? `preview-${variant}.mp4` : "preview.mp4");
+  const total = totalFrames(clip);
+
+  // La alerta del guion y la máquina donde ocurre, desde las anclas (si ya se calcularon).
+  /** @type {{ from: number, to: number, at: (t: number) => readonly number[] | null } | undefined} */
+  let alert;
+  const anchorsFile = join(HERO_DIR, `${clip.id}.anclas.json`);
+  if (existsSync(anchorsFile)) {
+    const data = JSON.parse(readFileSync(anchorsFile, "utf8"));
+    const event = data.eventos?.find((/** @type {{ estado: string }} */ e) => e.estado === "alerta");
+    const track = event ? data.anclas?.[event.ancla] : undefined;
+    if (event && track) {
+      alert = {
+        from: event.desde,
+        to: event.hasta,
+        at: (t) => track[Math.min(total - 1, Math.max(0, Math.round(t * clip.fps)))] ?? null,
+      };
+    }
+  }
+
   const size = `${clip.width}x${clip.height}`;
-  const source = (/** @type {string} */ color) =>
-    `color=c=${color}:s=${size}:r=${clip.fps}:d=${clip.duration}`;
   const graph = [
     `[0:v]scale=${size}:flags=lanczos,format=gbrp[fisica]`,
     `[1:v]scale=${size}:flags=lanczos,format=gbrp[datos]`,
-    `${source("black")},format=gray,geq=lum='${cutMask(clip, "franja")}'[franja]`,
-    `${source("black")},format=gray,geq=lum='${cutMask(clip, "borde")}'[borde]`,
-    `${source("0x0189F5")},format=gbrp[senal]`,
-    "[datos][franja]alphamerge[dentro]",
+    `[2:v]split[a][b]`,
+    `[a]crop=${clip.width}:${clip.height}:0:0[dentro]`,
+    `[b]crop=${clip.width}:${clip.height}:0:${clip.height}[borde]`,
+    `color=c=0x0189F5:s=${size}:r=${clip.fps},format=gbrp[senal]`,
+    "[datos][dentro]alphamerge[lente]",
     "[senal][borde]alphamerge[linea]",
-    "[fisica][dentro]overlay=format=gbrp[cortado]",
-    "[cortado][linea]overlay=format=gbrp,format=yuv420p[salida]",
+    "[fisica][lente]overlay=format=gbrp[cortado]",
+    "[cortado][linea]overlay=format=gbrp:shortest=1,format=yuv420p[salida]",
   ].join(";");
-  await run("ffmpeg", [
-    ...["-hide_banner", "-y", "-framerate", String(clip.fps), "-i", fisica],
-    ...["-framerate", String(clip.fps), "-i", datos],
-    ...["-filter_complex", graph, "-map", "[salida]", "-frames:v", String(totalFrames(clip))],
-    ...["-c:v", "libx264", "-preset", "slow", "-crf", "16", "-tune", "film", "-movflags", "+faststart", out],
-  ]);
+  const ffmpeg = spawn(
+    "ffmpeg",
+    [
+      ...["-hide_banner", "-y", "-framerate", String(clip.fps), "-i", fisica],
+      ...["-framerate", String(clip.fps), "-i", datos],
+      ...[
+        "-f",
+        "rawvideo",
+        "-pix_fmt",
+        "gray",
+        "-s",
+        `${clip.width}x${clip.height * 2}`,
+        "-r",
+        String(clip.fps),
+        "-i",
+        "-",
+      ],
+      ...["-filter_complex", graph, "-map", "[salida]", "-frames:v", String(total)],
+      ...[
+        "-c:v",
+        "libx264",
+        "-preset",
+        "slow",
+        "-crf",
+        "16",
+        "-tune",
+        "film",
+        "-movflags",
+        "+faststart",
+        out,
+      ],
+    ],
+    { stdio: ["pipe", "ignore", "pipe"] },
+  );
+  let log = "";
+  ffmpeg.stderr.on("data", (chunk) => {
+    log += chunk;
+  });
+  const done = new Promise((resolve, reject) => {
+    ffmpeg.on("error", reject);
+    ffmpeg.on("close", (code) =>
+      code === 0 ? resolve(undefined) : reject(new Error(`ffmpeg: ${log.slice(-2000)}`)),
+    );
+  });
+  const masks = Buffer.alloc(clip.width * clip.height * 2);
+  for (let i = 0; i < total; i++) {
+    lensMasks(clip, lensPath(i / clip.fps, clip, alert), masks);
+    if (!ffmpeg.stdin.write(masks)) await new Promise((resolve) => ffmpeg.stdin.once("drain", resolve));
+  }
+  ffmpeg.stdin.end();
+  await done;
   console.log(`vista previa → ${shown(out)} (${megabytes(out)})`);
 }
 
