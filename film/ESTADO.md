@@ -24,8 +24,10 @@ La lente del hero mezcla las dos capas alineadas al píxel. Eso es lo que comuni
 - **Luces de la nave.** La retícula de luminarias se calcula como luces reales dentro del shader, con oclusión tomada de la luz cenital.
 - **Reflejo planar del piso epóxico** con el lóbulo de un piso pulido en ángulo rasante: franjas verticales suaves, sin copias punteadas de las luminarias.
 - **Ventana de gradación del titular:** abajo a la izquierda en horizontal, el 40 % inferior en vertical.
-- **Comandos:** `render`, `loop`, `sheet`, `preview` (el corte de la I a 6° revela los datos), `encode` (capas apiladas AV1 + H.264, póster AVIF/WebP) y `anchors`.
+- **Comandos:** `render`, `loop`, `sheet`, `preview` (la lente, la I a 6°, recorre la línea y acompaña la alerta), `encode` (capas apiladas AV1 + H.264, póster AVIF/WebP) y `anchors`.
 - **Sin GPU:** en Linux usa Mesa lavapipe (ANGLE sobre Vulkan), unas seis veces más rápido que SwiftShader.
+
+**Prototipo de la lente** (`prototipo/lente.html`): el hero de una sola pantalla con la lente WebGL2 sobre el video apilado, etiquetas sobre las anclas, titular abajo a la izquierda y la hora de Mazatlán. Es la referencia para la integración en el sitio.
 
 **Mundo de manufactura, noche:**
 - **Escena:** maquila de electrónica en Tijuana. Líneas SMT con pick-and-place (cabezales animados), AOI, horno de reflujo, torretas, sensores, charolas, ductos y nave.
