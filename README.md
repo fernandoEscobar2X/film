@@ -62,17 +62,20 @@ public/media/hero/        videos y pósters finales
 
 ## Salida
 
-`encode` apila las capas (física arriba, datos abajo) en un solo video, así el sitio las
-decodifica juntas, alineadas al píxel y al cuadro:
+`encode` apila las capas en un solo video, así el sitio las decodifica juntas, alineadas al píxel
+y al cuadro. Se apilan por el lado corto de la toma: en horizontal, física arriba y datos abajo
+(1920 × 2160); en vertical, física a la izquierda y datos a la derecha (2160 × 1920). Así el video
+queda casi cuadrado y entra en los decodificadores 4K de los teléfonos, que no aceptan 3840 px de
+alto.
 
 | Archivo | Uso |
 | --- | --- |
 | `<toma>.webm` | AV1 10 bits: principal |
 | `<toma>.mp4` | H.264: respaldo |
 | `<toma>.avif`, `<toma>.webp` | Póster: cuadro 0 de la capa física. Es el LCP del hero y lo que se ve sin WebGL |
-| `<toma>.anclas.json` | Por máquina y cuadro: `[x, y, distancia]` (x e y en 0–1 desde arriba a la izquierda) o `null` si no se ve; más los eventos del guion (la alerta: máquina y segundos) |
+| `<toma>.anclas.json` | Por máquina y cuadro: `[x, y, distancia, xCuerpo, yCuerpo]` en 0–1 desde arriba a la izquierda, o `null` si no se ve. (x, y) es la torreta, donde se engancha la etiqueta; (xCuerpo, yCuerpo), el centro de la máquina, para saber si está dentro de la lente. Además, el campo de visión de la cámara y los eventos del guion (la alerta: máquina y segundos) |
 
-Un cuadro clave por segundo y 12 s de loop exacto: el atributo `loop` del video no deja costura.
+Un cuadro clave cada 2 s y 12 s de loop exacto: el atributo `loop` del video no deja costura.
 
 Las etiquetas no se hornean en el video: el sitio las dibuja sobre las anclas, en el idioma del
 visitante y con los valores del simulador. Al cerrar el loop la cámara avanzó un módulo, así que

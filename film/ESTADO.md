@@ -1,8 +1,8 @@
 # Video del hero: estado y pendientes
 
-**Estado (1 oct 2026): `manufactura-noche-h` terminada** (render, loop verificado, encode y vista
-previa) y `manufactura-noche-v` en render. Falta la revisión de dirección de arte con el usuario
-sobre la vista previa antes de modelar las otras industrias.
+**Estado (1 oct 2026): `manufactura-noche-h` y `manufactura-noche-v` terminadas** (render, loop
+verificado, encode, anclas, vista previa y demo). Falta la revisión de dirección de arte con el
+usuario antes de modelar las otras industrias.
 
 ## Idea
 
@@ -38,18 +38,22 @@ La lente del hero mezcla las dos capas alineadas al píxel. Eso es lo que comuni
 
 **Calidad:**
 - Tipos, Biome y Vitest limpios. Las pruebas cubren las invariantes del loop, que haya una sola alerta por loop y el muestreo.
-- El loop cierra con los cuadros finales: PSNR de 53.1 dB (física) y 65.2 dB (datos) entre el cuadro 0 y el siguiente al último. La diferencia es redondeo del mapa de sombras: invisible y muy por debajo del ruido de compresión.
+- El loop cierra con los cuadros finales (PSNR entre el cuadro 0 y el siguiente al último): h, 53.1 dB (física) y 65.2 dB (datos); v, 55.6 dB y 68.4 dB. La diferencia es redondeo del mapa de sombras: invisible y muy por debajo del ruido de compresión.
 
 **Archivos finales** (`public/media/hero/`):
 
 | Archivo | Peso | Nota |
 | --- | --- | --- |
-| `manufactura-noche-h.webm` | 4.1 MB | AV1 10 bits, capas apiladas 1920 × 2160, 360 cuadros |
+| `manufactura-noche-h.webm` | 4.1 MB | AV1 10 bits, capas una sobre otra (1920 × 2160), 360 cuadros |
 | `manufactura-noche-h.mp4` | 6.7 MB | H.264 de respaldo |
 | `manufactura-noche-h.avif` / `.webp` | 54 KB / 81 KB | Póster: cuadro 0 de la capa física (LCP) |
-| `manufactura-noche-h.anclas.json` | 252 KB (37 KB gzip) | 45 máquinas × 360 cuadros y la ventana de la alerta |
+| `manufactura-noche-h.anclas.json` | 375 KB (80 KB gzip) | 42 máquinas × 360 cuadros, campo de visión y la ventana de la alerta |
+| `manufactura-noche-v.webm` | 4.0 MB | AV1 10 bits, capas lado a lado (2160 × 1920), 360 cuadros |
+| `manufactura-noche-v.mp4` | 6.6 MB | H.264 de respaldo |
+| `manufactura-noche-v.avif` / `.webp` | 58 KB / 92 KB | Póster vertical |
+| `manufactura-noche-v.anclas.json` | 293 KB (70 KB gzip) | 31 máquinas × 360 cuadros |
 
-**Revisión:** `media-src/film/manufactura-noche-h/preview.mp4` (la lente recorre la línea y acompaña la alerta) y `demo.mp4` (la misma vista previa con la interfaz del prototipo encima: titular, texto, botones y hora).
+**Revisión** (fuera de git, en `media-src/film/<toma>/`): `preview.mp4` (la lente recorre la línea y acompaña la alerta) y `demo.mp4` (la misma vista previa con la interfaz del prototipo encima: titular, texto, botones y hora; en vertical, la interfaz de teléfono).
 
 ## Renders en disco (`media-src/film/`, fuera de git)
 
@@ -57,15 +61,13 @@ La lente del hero mezcla las dos capas alineadas al píxel. Eso es lo que comuni
 | --- | --- | --- | --- |
 | `manufactura-noche-h` | `fisica` | 0000–0359 | 48 subcuadros, código de `506d43d` |
 | `manufactura-noche-h` | `datos` | 0000–0359 | 48 subcuadros, código de `c6b1387` |
-| `manufactura-noche-v` | `fisica` | en curso | 48 subcuadros |
-| `manufactura-noche-v` | `datos` | en curso | 48 subcuadros |
+| `manufactura-noche-v` | `fisica` | 0000–0359 | 48 subcuadros, código de `506d43d` |
+| `manufactura-noche-v` | `datos` | 0000–0359 | 48 subcuadros, código de `c6b1387` |
 
 ## Pendiente, en orden
 
 1. **Revisión de dirección de arte con el usuario** sobre la vista previa y el demo. Hay que decidirla antes de modelar las otras industrias.
-2. **Resto de manufactura:**
-   - `-noche-v`: en render; al terminar, `loop`, `encode`, `anchors` y `preview`, y activar `data-clip-vertical` en el prototipo.
-   - `-dia-h/v`: falta la luz de día (sol por las ventanas altas, entorno de día, revelado propio).
+2. **Manufactura de día** (`-dia-h/v`): falta la luz de día (sol por las ventanas altas, entorno de día, revelado propio).
 3. **Mundos pendientes**, cada uno con capa física, capa de datos, guion propio y cámaras h/v. El estilo de la capa de datos ya es común (`film/src/core/data-style.ts`):
    - **logística:** terminal de contenedores de Ensenada; grúas, patio y tractocamiones;
    - **construcción:** obra en los cerros de Tijuana; grúa torre y colado;
