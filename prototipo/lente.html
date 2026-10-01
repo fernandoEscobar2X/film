@@ -377,7 +377,8 @@
 </head>
 <body>
 
-<main class="hero" id="hero" data-estado="poster" data-media="../public/media/hero/" data-clip="manufactura-noche-h">
+<main class="hero" id="hero" data-estado="poster" data-media="../public/media/hero/" data-clip="manufactura-noche-h"
+  data-clip-vertical="">
   <picture>
     <source srcset="../public/media/hero/manufactura-noche-h.avif" type="image/avif">
     <img class="poster" src="../public/media/hero/manufactura-noche-h.webp" alt="" fetchpriority="high">
@@ -443,7 +444,13 @@
     const toggle = document.getElementById("toggle");
     const hint = document.getElementById("hint");
     const media = hero.dataset.media;
-    const clipId = hero.dataset.clip;
+    // En pantallas verticales, la toma vertical (otra composición, no un recorte) si existe.
+    const vertical = hero.dataset.clipVertical;
+    const clipId = vertical && innerHeight > innerWidth ? vertical : hero.dataset.clip;
+    if (clipId !== hero.dataset.clip) {
+      for (const source of video.querySelectorAll("source")) source.src = source.src.replace(hero.dataset.clip, clipId);
+      video.load();
+    }
     const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const coarse = matchMedia("(pointer: coarse)").matches;
 
@@ -466,7 +473,7 @@
     // ─── Lente WebGL2 ─────────────────────────────────────────────────────
     const FPS = 30;
     const LOOP = 12;
-    const LAYER_ASPECT = 16 / 9;
+    const LAYER_ASPECT = clipId.endsWith("-v") ? 9 / 16 : 16 / 9;
     const SLANT = Math.tan((6 * Math.PI) / 180);
 
     const gl = canvas.getContext("webgl2", { alpha: false, antialias: false, premultipliedAlpha: false });
